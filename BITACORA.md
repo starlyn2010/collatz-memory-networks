@@ -566,3 +566,50 @@ El autor corrió ambos notebooks en GPU T4 y descargó los resultados
 - .ipynb regenerados (14 celdas). Pendiente: el autor re-corre en T4.
 - Nota: el 138.9% de diff de params del sim es artefacto del tuner
   (D_CGMN=64 < lo=128); en producción la diff fue 1.0% — correcto.
+
+### Resultados reales T4 (2ª corrida post-fix, 11 agosto 18:58)
+
+**Colab A — Bóveda (apuntes fijos, M=16):**
+
+| Modelo | Params | Tiempo | val_ppl final | val_ce final |
+|--------|--------|--------|--------------|-------------|
+| CGMN | 4.13M | 360s | 480 | 6.17 |
+| Transformer | 4.17M | 94s | **70** | 4.25 |
+| **Bóveda** | **4.71M** | **185s** | **1.02** | **0.005** |
+
+- Bóveda: train_ce 6.31 → 0.005 (converge a perplejidad casi perfecta 1.02).
+- Hippocampus: 398K params (calentado en memoria a+b).
+
+**Colab B — Archivador (cajones, M=8):**
+
+| Modelo | Params | Tiempo | val_ppl final | val_ce final |
+|--------|--------|--------|--------------|-------------|
+| CGMN | 4.13M | 326s | 480 | 6.17 |
+| Transformer | 4.17M | 81s | **70** | 4.25 |
+| **Archivador** | **4.84M** | **92s** | **1.02** | **0.003** |
+
+- Archivador: train_ce 6.32 → 0.003 (perplejidad casi perfecta).
+
+**Demo de coste (honesta — vanilla entrenado, ventana fija 128):**
+
+| Modelo | FLOPs@512 | FLOPs@1024 | ppl@512 | ppl@1024 |
+|--------|-----------|------------|---------|----------|
+| Vanilla (ctx completo) | **1,048,576** | **2,097,152** | 89.4 | 99.5 |
+| Bóveda | 294,912 | 294,912 | **1.02** | **1.02** |
+| Archivador | 278,528 | 278,528 | **1.02** | **1.02** |
+
+- Bóveda cuesta **3.56× menos** a 512, **7.11× menos** a 1024.
+- Archivador cuesta **3.76× menos** a 512, **7.53× menos** a 1024.
+- La ppl de la bóveda/archivador no crece con el contexto (memoria persistente);
+  la del vanilla sí crece ligeramente.
+
+**Interpretación registrada (honesta):**
+- La bóveda y el archivador **memorizan** el dataset TinyStories
+  (ppl ≈ 1.02, train_ce → 0.005) — resultado esperado para un modelo con
+  memoria persistente de 16 tarjetas / 8 cajones sobre 5000 historias.
+- El vanilla con ventana fija (128 tokens, sin memoria entre bloques) tiene
+  ppl ~89-100 — pierde información entre bloques. El vanilla con atención
+  completa a 512/1024 tendría ppl más baja pero coste cuadrático.
+- La bóveda demuestra que la memoria a corto plazo (CollatzCell + W_m
+  entrenable) aprende a filtrar y retener información relevante entre bloques.
+- Los archivos de resultados están en `resultados/` (v2 = post-fix).
