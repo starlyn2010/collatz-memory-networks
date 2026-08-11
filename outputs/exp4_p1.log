@@ -1,0 +1,149 @@
+modo CollatzFix1 seed=1: ya en JSON
+modo CollatzFix1 seed=3: ya en JSON
+modo NoCollatz seed=0: ya en JSON
+modo NoCollatz seed=2: ya en JSON
+modo NoCollatz seed=4: ya en JSON
+=== RandomGate seed=1 ===
+[RandomGate seed=1] ep 1/40 token_acc=0.1812 ce=2.024
+[RandomGate seed=1] ep 6/40 token_acc=0.2996 ce=1.724
+[RandomGate seed=1] ep 11/40 token_acc=0.2848 ce=1.622
+[RandomGate seed=1] ep 16/40 token_acc=0.3025 ce=1.520
+[RandomGate seed=1] ep 21/40 token_acc=0.3209 ce=1.486
+[RandomGate seed=1] ep 26/40 token_acc=0.3287 ce=1.489
+[RandomGate seed=1] ep 31/40 token_acc=0.3312 ce=1.440
+[RandomGate seed=1] ep 36/40 token_acc=0.3326 ce=1.442
+[RandomGate seed=1] ep 40/40 token_acc=0.3344 ce=1.462
+RandomGate seed=1: token_acc=0.3344 exact=0.0000
+
+=== RandomGate seed=3 ===
+[RandomGate seed=3] ep 1/40 token_acc=0.1756 ce=2.033
+[RandomGate seed=3] ep 6/40 token_acc=0.2904 ce=1.733
+[RandomGate seed=3] ep 11/40 token_acc=0.2945 ce=1.613
+[RandomGate seed=3] ep 16/40 token_acc=0.3068 ce=1.513
+[RandomGate seed=3] ep 21/40 token_acc=0.3209 ce=1.468
+[RandomGate seed=3] ep 26/40 token_acc=0.3258 ce=1.458
+[RandomGate seed=3] ep 31/40 token_acc=0.3309 ce=1.425
+[RandomGate seed=3] ep 36/40 token_acc=0.3291 ce=1.463
+[RandomGate seed=3] ep 40/40 token_acc=0.3297 ce=1.457
+RandomGate seed=3: token_acc=0.3297 exact=0.0000
+
+=== SobolGate seed=0 ===
+[SobolGate seed=0] ep 1/40 token_acc=0.1211 ce=2.110
+[SobolGate seed=0] ep 6/40 token_acc=0.2670 ce=1.902
+[SobolGate seed=0] ep 11/40 token_acc=0.4299 ce=1.485
+[SobolGate seed=0] ep 16/40 token_acc=0.4990 ce=1.100
+[SobolGate seed=0] ep 21/40 token_acc=0.5195 ce=0.987
+[SobolGate seed=0] ep 26/40 token_acc=0.5186 ce=0.864
+[SobolGate seed=0] ep 31/40 token_acc=0.5229 ce=0.840
+[SobolGate seed=0] ep 36/40 token_acc=0.5340 ce=0.846
+[SobolGate seed=0] ep 40/40 token_acc=0.5295 ce=0.841
+SobolGate seed=0: token_acc=0.5295 exact=0.0000
+
+=== SobolGate seed=2 ===
+[SobolGate seed=2] ep 1/40 token_acc=0.1279 ce=2.130
+[SobolGate seed=2] ep 6/40 token_acc=0.2398 ce=1.941
+[SobolGate seed=2] ep 11/40 token_acc=0.3895 ce=1.560
+[SobolGate seed=2] ep 16/40 token_acc=0.5268 ce=1.112
+[SobolGate seed=2] ep 21/40 token_acc=0.5596 ce=0.956
+[SobolGate seed=2] ep 26/40 token_acc=0.5699 ce=0.873
+[SobolGate seed=2] ep 31/40 token_acc=0.5807 ce=0.837
+[SobolGate seed=2] ep 36/40 token_acc=0.5832 ce=0.853
+[SobolGate seed=2] ep 40/40 token_acc=0.5838 ce=0.849
+SobolGate seed=2: token_acc=0.5838 exact=0.0020
+
+=== SobolGate seed=4 ===
+[SobolGate seed=4] ep 1/40 token_acc=0.1268 ce=2.118
+[SobolGate seed=4] ep 6/40 token_acc=0.2455 ce=1.911
+[SobolGate seed=4] ep 11/40 token_acc=0.4395 ce=1.474
+[SobolGate seed=4] ep 16/40 token_acc=0.4832 ce=1.185
+[SobolGate seed=4] ep 21/40 token_acc=0.5049 ce=1.030
+[SobolGate seed=4] ep 26/40 token_acc=0.5086 ce=0.981
+[SobolGate seed=4] ep 31/40 token_acc=0.5254 ce=0.920
+[SobolGate seed=4] ep 36/40 token_acc=0.5141 ce=0.914
+[SobolGate seed=4] ep 40/40 token_acc=0.5193 ce=0.926
+SobolGate seed=4: token_acc=0.5193 exact=0.0000
+
+=== CollatzFix1-replica seed=1 ===
+[CollatzFix1-replica seed=1] ep 1/40 token_acc=0.1799 ce=2.074
+[CollatzFix1-replica seed=1] ep 6/40 token_acc=0.5354 ce=1.241
+[CollatzFix1-replica seed=1] ep 11/40 token_acc=0.7264 ce=0.755
+[CollatzFix1-replica seed=1] ep 16/40 token_acc=0.8082 ce=0.580
+[CollatzFix1-replica seed=1] ep 21/40 token_acc=0.8393 ce=0.484
+[CollatzFix1-replica seed=1] ep 26/40 token_acc=0.8568 ce=0.407
+[CollatzFix1-replica seed=1] ep 31/40 token_acc=0.8664 ce=0.403
+[CollatzFix1-replica seed=1] ep 36/40 token_acc=0.8756 ce=0.380
+[CollatzFix1-replica seed=1] ep 40/40 token_acc=0.8818 ce=0.369
+CollatzFix1-replica seed=1: token_acc=0.8818 exact=0.2598
+
+=== CollatzFix1-replica seed=3 ===
+[CollatzFix1-replica seed=3] ep 1/40 token_acc=0.1459 ce=2.080
+[CollatzFix1-replica seed=3] ep 6/40 token_acc=0.5459 ce=1.214
+[CollatzFix1-replica seed=3] ep 11/40 token_acc=0.7330 ce=0.741
+[CollatzFix1-replica seed=3] ep 16/40 token_acc=0.7846 ce=0.592
+[CollatzFix1-replica seed=3] ep 21/40 token_acc=0.8342 ce=0.501
+[CollatzFix1-replica seed=3] ep 26/40 token_acc=0.8547 ce=0.420
+[CollatzFix1-replica seed=3] ep 31/40 token_acc=0.8701 ce=0.414
+[CollatzFix1-replica seed=3] ep 36/40 token_acc=0.8736 ce=0.384
+[CollatzFix1-replica seed=3] ep 40/40 token_acc=0.8717 ce=0.396
+CollatzFix1-replica seed=3: token_acc=0.8717 exact=0.1953
+
+=== CollatzFix2-CP1pct seed=0 ===
+[CollatzFix2-CP1pct seed=0] ep 1/40 token_acc=0.2053 ce=2.041
+[CollatzFix2-CP1pct seed=0] ep 6/40 token_acc=0.3266 ce=1.294
+[CollatzFix2-CP1pct seed=0] ep 11/40 token_acc=0.4221 ce=0.833
+[CollatzFix2-CP1pct seed=0] ep 16/40 token_acc=0.4518 ce=0.659
+[CollatzFix2-CP1pct seed=0] ep 21/40 token_acc=0.4648 ce=0.568
+[CollatzFix2-CP1pct seed=0] ep 26/40 token_acc=0.4707 ce=0.472
+[CollatzFix2-CP1pct seed=0] ep 31/40 token_acc=0.4777 ce=0.447
+[CollatzFix2-CP1pct seed=0] ep 36/40 token_acc=0.4816 ce=0.444
+[CollatzFix2-CP1pct seed=0] ep 40/40 token_acc=0.4814 ce=0.449
+CollatzFix2-CP1pct seed=0: token_acc=0.4814 exact=0.0000
+
+=== CollatzFix2-CP1pct seed=2 ===
+[CollatzFix2-CP1pct seed=2] ep 1/40 token_acc=0.1980 ce=2.009
+[CollatzFix2-CP1pct seed=2] ep 6/40 token_acc=0.3381 ce=1.359
+[CollatzFix2-CP1pct seed=2] ep 11/40 token_acc=0.4453 ce=0.816
+[CollatzFix2-CP1pct seed=2] ep 16/40 token_acc=0.4668 ce=0.642
+[CollatzFix2-CP1pct seed=2] ep 21/40 token_acc=0.4852 ce=0.541
+[CollatzFix2-CP1pct seed=2] ep 26/40 token_acc=0.4926 ce=0.454
+[CollatzFix2-CP1pct seed=2] ep 31/40 token_acc=0.4965 ce=0.441
+[CollatzFix2-CP1pct seed=2] ep 36/40 token_acc=0.4980 ce=0.414
+[CollatzFix2-CP1pct seed=2] ep 40/40 token_acc=0.4998 ce=0.430
+CollatzFix2-CP1pct seed=2: token_acc=0.4998 exact=0.0000
+
+=== CollatzFix2-CP1pct seed=4 ===
+[CollatzFix2-CP1pct seed=4] ep 1/40 token_acc=0.2045 ce=2.040
+[CollatzFix2-CP1pct seed=4] ep 6/40 token_acc=0.3480 ce=1.289
+[CollatzFix2-CP1pct seed=4] ep 11/40 token_acc=0.4088 ce=0.799
+[CollatzFix2-CP1pct seed=4] ep 16/40 token_acc=0.4348 ce=0.652
+[CollatzFix2-CP1pct seed=4] ep 21/40 token_acc=0.4494 ce=0.512
+[CollatzFix2-CP1pct seed=4] ep 26/40 token_acc=0.4635 ce=0.418
+[CollatzFix2-CP1pct seed=4] ep 31/40 token_acc=0.4656 ce=0.443
+[CollatzFix2-CP1pct seed=4] ep 36/40 token_acc=0.4701 ce=0.413
+[CollatzFix2-CP1pct seed=4] ep 40/40 token_acc=0.4736 ce=0.431
+CollatzFix2-CP1pct seed=4: token_acc=0.4736 exact=0.0000
+
+=== CollatzFix3-entropy seed=1 ===
+[CollatzFix3-entropy seed=1] ep 1/40 token_acc=0.2115 ce=2.025
+[CollatzFix3-entropy seed=1] ep 6/40 token_acc=0.3492 ce=1.328
+[CollatzFix3-entropy seed=1] ep 11/40 token_acc=0.4211 ce=0.816
+[CollatzFix3-entropy seed=1] ep 16/40 token_acc=0.4494 ce=0.667
+[CollatzFix3-entropy seed=1] ep 21/40 token_acc=0.4703 ce=0.540
+[CollatzFix3-entropy seed=1] ep 26/40 token_acc=0.4801 ce=0.480
+[CollatzFix3-entropy seed=1] ep 31/40 token_acc=0.4889 ce=0.465
+[CollatzFix3-entropy seed=1] ep 36/40 token_acc=0.4912 ce=0.447
+[CollatzFix3-entropy seed=1] ep 40/40 token_acc=0.4936 ce=0.441
+CollatzFix3-entropy seed=1: token_acc=0.4936 exact=0.0000
+
+=== CollatzFix3-entropy seed=3 ===
+[CollatzFix3-entropy seed=3] ep 1/40 token_acc=0.2041 ce=2.040
+[CollatzFix3-entropy seed=3] ep 6/40 token_acc=0.3822 ce=1.269
+[CollatzFix3-entropy seed=3] ep 11/40 token_acc=0.4287 ce=0.809
+[CollatzFix3-entropy seed=3] ep 16/40 token_acc=0.4424 ce=0.697
+[CollatzFix3-entropy seed=3] ep 21/40 token_acc=0.4590 ce=0.562
+[CollatzFix3-entropy seed=3] ep 26/40 token_acc=0.4676 ce=0.495
+[CollatzFix3-entropy seed=3] ep 31/40 token_acc=0.4742 ce=0.461
+[CollatzFix3-entropy seed=3] ep 36/40 token_acc=0.4721 ce=0.443
+[CollatzFix3-entropy seed=3] ep 40/40 token_acc=0.4758 ce=0.469
+CollatzFix3-entropy seed=3: token_acc=0.4758 exact=0.0000
+

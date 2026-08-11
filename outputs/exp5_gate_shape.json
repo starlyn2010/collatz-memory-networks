@@ -1,0 +1,542 @@
+{
+  "collatz_090::0": {
+    "final": {
+      "token_acc": 0.8951171875,
+      "exact_acc": 0.326171875,
+      "mse": 44.601399993896486
+    },
+    "best": {
+      "token_acc": 0.8951171875,
+      "exact_acc": 0.326171875,
+      "mse": 44.601399993896486,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.559135836362839,
+    "total_sec": 184.39792394638062,
+    "ram_peak_mb": 347.3046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_098::0": {
+    "final": {
+      "token_acc": 0.89296875,
+      "exact_acc": 0.298828125,
+      "mse": 43.67115783691406
+    },
+    "best": {
+      "token_acc": 0.89296875,
+      "exact_acc": 0.298828125,
+      "mse": 43.67115783691406,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.580207133293152,
+    "total_sec": 185.35148644447327,
+    "ram_peak_mb": 347.3203125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_090::1": {
+    "final": {
+      "token_acc": 0.8857421875,
+      "exact_acc": 0.26171875,
+      "mse": 47.408700180053714
+    },
+    "best": {
+      "token_acc": 0.8857421875,
+      "exact_acc": 0.26171875,
+      "mse": 47.408700180053714,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.229280185699463,
+    "total_sec": 171.07581329345703,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_098::1": {
+    "final": {
+      "token_acc": 0.8830078125,
+      "exact_acc": 0.26953125,
+      "mse": 48.38656578063965
+    },
+    "best": {
+      "token_acc": 0.8830078125,
+      "exact_acc": 0.26953125,
+      "mse": 48.38656578063965,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.263323259353638,
+    "total_sec": 172.7342529296875,
+    "ram_peak_mb": 347.8203125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_098::2": {
+    "final": {
+      "token_acc": 0.898046875,
+      "exact_acc": 0.337890625,
+      "mse": 45.70286827087402
+    },
+    "best": {
+      "token_acc": 0.898046875,
+      "exact_acc": 0.337890625,
+      "mse": 45.70286827087402,
+      "epoch": 39
+    },
+    "sec_per_epoch": 5.937026077508927,
+    "total_sec": 240.0608720779419,
+    "ram_peak_mb": 347.8203125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_090::2": {
+    "final": {
+      "token_acc": 0.887109375,
+      "exact_acc": 0.283203125,
+      "mse": 45.92846450805664
+    },
+    "best": {
+      "token_acc": 0.887109375,
+      "exact_acc": 0.283203125,
+      "mse": 45.92846450805664,
+      "epoch": 39
+    },
+    "sec_per_epoch": 6.032435703277588,
+    "total_sec": 244.05253386497498,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_098::3": {
+    "final": {
+      "token_acc": 0.884765625,
+      "exact_acc": 0.234375,
+      "mse": 49.976912307739255
+    },
+    "best": {
+      "token_acc": 0.884765625,
+      "exact_acc": 0.234375,
+      "mse": 49.976912307739255,
+      "epoch": 39
+    },
+    "sec_per_epoch": 5.184000164270401,
+    "total_sec": 209.9206919670105,
+    "ram_peak_mb": 348.0703125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_090::3": {
+    "final": {
+      "token_acc": 0.8765625,
+      "exact_acc": 0.21484375,
+      "mse": 48.70191535949707
+    },
+    "best": {
+      "token_acc": 0.8765625,
+      "exact_acc": 0.21484375,
+      "mse": 48.70191535949707,
+      "epoch": 39
+    },
+    "sec_per_epoch": 5.209080374240875,
+    "total_sec": 210.94810342788696,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_098::4": {
+    "final": {
+      "token_acc": 0.8875,
+      "exact_acc": 0.283203125,
+      "mse": 47.49693908691406
+    },
+    "best": {
+      "token_acc": 0.8875,
+      "exact_acc": 0.283203125,
+      "mse": 47.49693908691406,
+      "epoch": 39
+    },
+    "sec_per_epoch": 6.204736214876175,
+    "total_sec": 250.63605165481567,
+    "ram_peak_mb": 348.0703125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_090::4": {
+    "final": {
+      "token_acc": 0.889453125,
+      "exact_acc": 0.298828125,
+      "mse": 47.31939125061035
+    },
+    "best": {
+      "token_acc": 0.889453125,
+      "exact_acc": 0.298828125,
+      "mse": 47.31939125061035,
+      "epoch": 39
+    },
+    "sec_per_epoch": 6.201059538125992,
+    "total_sec": 250.4121503829956,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_bin_095::0": {
+    "final": {
+      "token_acc": 0.8876953125,
+      "exact_acc": 0.2734375,
+      "mse": 44.00142478942871
+    },
+    "best": {
+      "token_acc": 0.8876953125,
+      "exact_acc": 0.2734375,
+      "mse": 44.00142478942871,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.757893669605255,
+    "total_sec": 192.48223972320557,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_090::0": {
+    "final": {
+      "token_acc": 0.8912109375,
+      "exact_acc": 0.30859375,
+      "mse": 44.40279922485352
+    },
+    "best": {
+      "token_acc": 0.8912109375,
+      "exact_acc": 0.30859375,
+      "mse": 44.40279922485352,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.8105116248130795,
+    "total_sec": 194.6932966709137,
+    "ram_peak_mb": 348.0703125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_090::1": {
+    "final": {
+      "token_acc": 0.8849609375,
+      "exact_acc": 0.251953125,
+      "mse": 47.00828094482422
+    },
+    "best": {
+      "token_acc": 0.8849609375,
+      "exact_acc": 0.251953125,
+      "mse": 47.00828094482422,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.117341315746307,
+    "total_sec": 166.59786772727966,
+    "ram_peak_mb": 348.0703125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_bin_095::1": {
+    "final": {
+      "token_acc": 0.879296875,
+      "exact_acc": 0.251953125,
+      "mse": 47.883345413208005
+    },
+    "best": {
+      "token_acc": 0.879296875,
+      "exact_acc": 0.251953125,
+      "mse": 47.883345413208005,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.13281666636467,
+    "total_sec": 167.21807050704956,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_090::2": {
+    "final": {
+      "token_acc": 0.8857421875,
+      "exact_acc": 0.294921875,
+      "mse": 45.54025497436523
+    },
+    "best": {
+      "token_acc": 0.8857421875,
+      "exact_acc": 0.294921875,
+      "mse": 45.54025497436523,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.48790568113327,
+    "total_sec": 181.6621973514557,
+    "ram_peak_mb": 348.0703125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_bin_095::2": {
+    "final": {
+      "token_acc": 0.8884765625,
+      "exact_acc": 0.279296875,
+      "mse": 46.112545776367185
+    },
+    "best": {
+      "token_acc": 0.8884765625,
+      "exact_acc": 0.279296875,
+      "mse": 46.112545776367185,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.499603027105332,
+    "total_sec": 182.10592031478882,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_090::3": {
+    "final": {
+      "token_acc": 0.87265625,
+      "exact_acc": 0.1953125,
+      "mse": 48.27916793823242
+    },
+    "best": {
+      "token_acc": 0.87265625,
+      "exact_acc": 0.1953125,
+      "mse": 48.27916793823242,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.728073805570602,
+    "total_sec": 191.28974866867065,
+    "ram_peak_mb": 348.0703125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_bin_095::3": {
+    "final": {
+      "token_acc": 0.88046875,
+      "exact_acc": 0.24609375,
+      "mse": 49.57435646057129
+    },
+    "best": {
+      "token_acc": 0.88046875,
+      "exact_acc": 0.24609375,
+      "mse": 49.57435646057129,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.7515878021717075,
+    "total_sec": 192.15846967697144,
+    "ram_peak_mb": 347.8046875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_090::4": {
+    "final": {
+      "token_acc": 0.889453125,
+      "exact_acc": 0.294921875,
+      "mse": 46.95258903503418
+    },
+    "best": {
+      "token_acc": 0.889453125,
+      "exact_acc": 0.294921875,
+      "mse": 46.95258903503418,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.228120905160904,
+    "total_sec": 171.02559900283813,
+    "ram_peak_mb": 348.1953125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "collatz_bin_095::4": {
+    "final": {
+      "token_acc": 0.880859375,
+      "exact_acc": 0.27734375,
+      "mse": 47.294427490234376
+    },
+    "best": {
+      "token_acc": 0.880859375,
+      "exact_acc": 0.27734375,
+      "mse": 47.294427490234376,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.2478705704212185,
+    "total_sec": 171.86388993263245,
+    "ram_peak_mb": 347.9296875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_098::0": {
+    "final": {
+      "token_acc": 0.8931640625,
+      "exact_acc": 0.30078125,
+      "mse": 43.64441032409668
+    },
+    "best": {
+      "token_acc": 0.8931640625,
+      "exact_acc": 0.30078125,
+      "mse": 43.64441032409668,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.369306635856629,
+    "total_sec": 176.75938820838928,
+    "ram_peak_mb": 348.1953125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_095::0": {
+    "final": {
+      "token_acc": 0.8900390625,
+      "exact_acc": 0.294921875,
+      "mse": 43.829217529296876
+    },
+    "best": {
+      "token_acc": 0.8900390625,
+      "exact_acc": 0.294921875,
+      "mse": 43.829217529296876,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.393744498491287,
+    "total_sec": 177.92182755470276,
+    "ram_peak_mb": 347.9296875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_098::1": {
+    "final": {
+      "token_acc": 0.8861328125,
+      "exact_acc": 0.27734375,
+      "mse": 48.07251625061035
+    },
+    "best": {
+      "token_acc": 0.8861328125,
+      "exact_acc": 0.27734375,
+      "mse": 48.07251625061035,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.961180323362351,
+    "total_sec": 200.67004084587097,
+    "ram_peak_mb": 348.1953125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_095::1": {
+    "final": {
+      "token_acc": 0.884375,
+      "exact_acc": 0.2578125,
+      "mse": 47.90638618469238
+    },
+    "best": {
+      "token_acc": 0.884375,
+      "exact_acc": 0.2578125,
+      "mse": 47.90638618469238,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.893398195505142,
+    "total_sec": 197.96744060516357,
+    "ram_peak_mb": 347.9296875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_095::2": {
+    "final": {
+      "token_acc": 0.890625,
+      "exact_acc": 0.28515625,
+      "mse": 45.30084037780762
+    },
+    "best": {
+      "token_acc": 0.890625,
+      "exact_acc": 0.28515625,
+      "mse": 45.30084037780762,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.616503381729126,
+    "total_sec": 186.70878267288208,
+    "ram_peak_mb": 348.0546875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_098::2": {
+    "final": {
+      "token_acc": 0.898828125,
+      "exact_acc": 0.3359375,
+      "mse": 45.66494789123535
+    },
+    "best": {
+      "token_acc": 0.898828125,
+      "exact_acc": 0.3359375,
+      "mse": 45.66494789123535,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.647566998004914,
+    "total_sec": 188.06934809684753,
+    "ram_peak_mb": 348.1953125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_095::3": {
+    "final": {
+      "token_acc": 0.883203125,
+      "exact_acc": 0.248046875,
+      "mse": 49.99411964416504
+    },
+    "best": {
+      "token_acc": 0.883203125,
+      "exact_acc": 0.248046875,
+      "mse": 49.99411964416504,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.267311251163482,
+    "total_sec": 172.6203110218048,
+    "ram_peak_mb": 348.0546875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_098::3": {
+    "final": {
+      "token_acc": 0.8818359375,
+      "exact_acc": 0.234375,
+      "mse": 49.881408309936525
+    },
+    "best": {
+      "token_acc": 0.8818359375,
+      "exact_acc": 0.234375,
+      "mse": 49.881408309936525,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.299080795049667,
+    "total_sec": 173.89095330238342,
+    "ram_peak_mb": 348.1953125,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_095::4": {
+    "final": {
+      "token_acc": 0.88828125,
+      "exact_acc": 0.294921875,
+      "mse": 47.65224761962891
+    },
+    "best": {
+      "token_acc": 0.88828125,
+      "exact_acc": 0.294921875,
+      "mse": 47.65224761962891,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.509508413076401,
+    "total_sec": 182.6250102519989,
+    "ram_peak_mb": 348.1796875,
+    "n_params": 54602,
+    "epochs": 40
+  },
+  "const_098::4": {
+    "final": {
+      "token_acc": 0.884375,
+      "exact_acc": 0.283203125,
+      "mse": 47.46486129760742
+    },
+    "best": {
+      "token_acc": 0.884375,
+      "exact_acc": 0.283203125,
+      "mse": 47.46486129760742,
+      "epoch": 39
+    },
+    "sec_per_epoch": 4.496492063999176,
+    "total_sec": 182.03248071670532,
+    "ram_peak_mb": 348.1953125,
+    "n_params": 54602,
+    "epochs": 40
+  }
+}

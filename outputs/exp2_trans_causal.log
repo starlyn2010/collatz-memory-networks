@@ -1,0 +1,44 @@
+D=10 cgmn: ya en JSON, se omite
+D=10 rnn: ya en JSON, se omite
+D=10 gru: ya en JSON, se omite
+=== D=10 (22 tokens) transformer epochs=40 ===
+[transformer] D=10 ep 1/40 mse=0.880 mae=0.746 lr=9.99e-04
+[transformer] D=10 ep 11/40 mse=0.002 mae=0.032 lr=8.27e-04
+[transformer] D=10 ep 21/40 mse=0.000 mae=0.012 lr=4.67e-04
+[transformer] D=10 ep 31/40 mse=0.000 mae=0.000 lr=1.29e-04
+[transformer] D=10 ep 40/40 mse=0.000 mae=0.000 lr=1.00e-05
+D=10 transformer: final mse=0.000 mae=0.000
+
+D=10 cfc: ya en JSON, se omite
+D=50 cgmn: ya en JSON, se omite
+D=50 rnn: ya en JSON, se omite
+D=50 gru: ya en JSON, se omite
+=== D=50 (102 tokens) transformer epochs=30 ===
+[transformer] D=50 ep 1/30 mse=0.787 mae=0.756 lr=9.97e-04
+[transformer] D=50 ep 11/30 mse=0.009 mae=0.083 lr=7.07e-04
+[transformer] D=50 ep 21/30 mse=0.000 mae=0.002 lr=2.14e-04
+[transformer] D=50 ep 30/30 mse=0.000 mae=0.001 lr=1.00e-05
+D=50 transformer: final mse=0.000 mae=0.001
+
+D=50 cfc: ya en JSON, se omite
+D=100 cgmn: ya en JSON, se omite
+D=100 rnn: ya en JSON, se omite
+D=100 gru: ya en JSON, se omite
+=== D=100 (202 tokens) transformer epochs=20 ===
+[transformer] D=100 ep 1/20 mse=0.420 mae=0.533 lr=9.94e-04
+[transformer] D=100 ep 11/20 mse=0.000 mae=0.009 lr=4.29e-04
+[transformer] D=100 ep 20/20 mse=0.000 mae=0.001 lr=1.00e-05
+D=100 transformer: final mse=0.000 mae=0.001
+
+D=100 cfc: ya en JSON, se omite
+D=200 cgmn: ya en JSON, se omite
+D=200 rnn: ya en JSON, se omite
+D=200 gru: ya en JSON, se omite
+=== D=200 (402 tokens) transformer epochs=12 ===
+[transformer] D=200 ep 1/12 mse=0.964 mae=0.834 lr=9.84e-04
+[transformer] D=200 ep 11/12 mse=0.000 mae=0.005 lr=2.70e-05
+[transformer] D=200 ep 12/12 mse=0.000 mae=0.004 lr=1.00e-05
+D=200 transformer: final mse=0.000 mae=0.004
+
+D=200 cfc: ya en JSON, se omite
+OK — resultados en /home/starlyn/Escritorio/Redes liquidas/collatz_memory_networks/outputs/exp2_delayed_memory.json

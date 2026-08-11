@@ -1,0 +1,278 @@
+{
+  "10": {
+    "cgmn": {
+      "final": {
+        "token_acc": 0.891796875,
+        "exact_acc": 0.302734375,
+        "mse": 45.185997772216794
+      },
+      "best": {
+        "token_acc": 0.891796875,
+        "exact_acc": 0.302734375,
+        "mse": 45.185997772216794,
+        "epoch": 39
+      },
+      "sec_per_epoch": 4.5895054936409,
+      "total_sec": 185.48284935951233,
+      "ram_peak_mb": 345.86328125,
+      "n_params": 54602,
+      "epochs": 40
+    },
+    "rnn": {
+      "final": {
+        "token_acc": 0.121484375,
+        "exact_acc": 0.0,
+        "mse": 127.59059295654296
+      },
+      "best": {
+        "token_acc": 0.1328125,
+        "exact_acc": 0.0,
+        "mse": 36.50675163269043,
+        "epoch": 0
+      },
+      "sec_per_epoch": 1.907563954591751,
+      "total_sec": 77.1219470500946,
+      "ram_peak_mb": 346.47265625,
+      "n_params": 41962,
+      "epochs": 40
+    },
+    "gru": {
+      "final": {
+        "token_acc": 0.881640625,
+        "exact_acc": 0.255859375,
+        "mse": 45.467227935791016
+      },
+      "best": {
+        "token_acc": 0.881640625,
+        "exact_acc": 0.255859375,
+        "mse": 45.467227935791016,
+        "epoch": 39
+      },
+      "sec_per_epoch": 3.696203017234802,
+      "total_sec": 149.58342933654785,
+      "ram_peak_mb": 346.97265625,
+      "n_params": 53066,
+      "epochs": 40
+    },
+    "transformer": {
+      "final": {
+        "token_acc": 1.0,
+        "exact_acc": 1.0,
+        "mse": 211.6256332397461
+      },
+      "best": {
+        "token_acc": 1.0,
+        "exact_acc": 1.0,
+        "mse": 190.58376770019532,
+        "epoch": 20
+      },
+      "sec_per_epoch": 3.7095330953598022,
+      "total_sec": 149.78132724761963,
+      "ram_peak_mb": 355.66796875,
+      "n_params": 54162,
+      "epochs": 40
+    },
+    "cfc": {
+      "final": {
+        "token_acc": 0.321484375,
+        "exact_acc": 0.0,
+        "mse": 64.82033767700196
+      },
+      "best": {
+        "token_acc": 0.321484375,
+        "exact_acc": 0.0,
+        "mse": 64.82033767700196,
+        "epoch": 39
+      },
+      "sec_per_epoch": 4.150665456056595,
+      "total_sec": 167.84741926193237,
+      "ram_peak_mb": 355.66796875,
+      "n_params": 59317,
+      "epochs": 40
+    }
+  },
+  "50": {
+    "cgmn": {
+      "final": {
+        "token_acc": 0.2788671875,
+        "exact_acc": 0.0,
+        "mse": 42.5293115234375
+      },
+      "best": {
+        "token_acc": 0.2788671875,
+        "exact_acc": 0.0,
+        "mse": 42.5293115234375,
+        "epoch": 29
+      },
+      "sec_per_epoch": 40.10909149646759,
+      "total_sec": 1217.6670083999634,
+      "ram_peak_mb": 412.046875,
+      "n_params": 59722,
+      "epochs": 30
+    },
+    "rnn": {
+      "final": {
+        "token_acc": 0.1237109375,
+        "exact_acc": 0.0,
+        "mse": 107.87616088867188
+      },
+      "best": {
+        "token_acc": 0.1290625,
+        "exact_acc": 0.0,
+        "mse": 105.45745727539062,
+        "epoch": 20
+      },
+      "sec_per_epoch": 60.17789155642192,
+      "total_sec": 1808.595540046692,
+      "ram_peak_mb": 412.046875,
+      "n_params": 49642,
+      "epochs": 30
+    },
+    "gru": {
+      "final": {
+        "token_acc": 0.261796875,
+        "exact_acc": 0.0,
+        "mse": 40.92759582519531
+      },
+      "best": {
+        "token_acc": 0.261796875,
+        "exact_acc": 0.0,
+        "mse": 40.92759582519531,
+        "epoch": 29
+      },
+      "sec_per_epoch": 7.868813681602478,
+      "total_sec": 239.3680944442749,
+      "ram_peak_mb": 412.046875,
+      "n_params": 58186,
+      "epochs": 30
+    },
+    "transformer": {
+      "final": {
+        "token_acc": 0.21828125,
+        "exact_acc": 0.0,
+        "mse": 131.88844848632812
+      },
+      "best": {
+        "token_acc": 0.21828125,
+        "exact_acc": 0.0,
+        "mse": 131.88844848632812,
+        "epoch": 29
+      },
+      "sec_per_epoch": 11.449972812334696,
+      "total_sec": 348.86825370788574,
+      "ram_peak_mb": 421.3984375,
+      "n_params": 58642,
+      "epochs": 30
+    },
+    "cfc": {
+      "final": {
+        "token_acc": 0.124453125,
+        "exact_acc": 0.0,
+        "mse": 89.8854638671875
+      },
+      "best": {
+        "token_acc": 0.1290625,
+        "exact_acc": 0.0,
+        "mse": 87.7575927734375,
+        "epoch": 20
+      },
+      "sec_per_epoch": 37.2481773853302,
+      "total_sec": 1131.2186205387115,
+      "ram_peak_mb": 421.3984375,
+      "n_params": 63557,
+      "epochs": 30
+    }
+  },
+  "100": {
+    "cgmn": {
+      "final": {
+        "token_acc": 0.12490234375,
+        "exact_acc": 0.0,
+        "mse": 80.96739379882813
+      },
+      "best": {
+        "token_acc": 0.12541015625,
+        "exact_acc": 0.0,
+        "mse": 75.75698974609375,
+        "epoch": 10
+      },
+      "sec_per_epoch": 89.05382457971572,
+      "total_sec": 1803.5534687042236,
+      "ram_peak_mb": 483.62109375,
+      "n_params": 66122,
+      "epochs": 20
+    },
+    "rnn": {
+      "final": {
+        "token_acc": 0.12494140625,
+        "exact_acc": 0.0,
+        "mse": 92.33118408203126
+      },
+      "best": {
+        "token_acc": 0.1252734375,
+        "exact_acc": 0.0,
+        "mse": 86.561826171875,
+        "epoch": 10
+      },
+      "sec_per_epoch": 54.58156951665878,
+      "total_sec": 1094.4087822437286,
+      "ram_peak_mb": 483.62109375,
+      "n_params": 59242,
+      "epochs": 20
+    },
+    "gru": {
+      "final": {
+        "token_acc": 0.1233203125,
+        "exact_acc": 0.0,
+        "mse": 73.92534606933594
+      },
+      "best": {
+        "token_acc": 0.12482421875,
+        "exact_acc": 0.0,
+        "mse": 69.00532287597656,
+        "epoch": 10
+      },
+      "sec_per_epoch": 28.364054870605468,
+      "total_sec": 576.0638933181763,
+      "ram_peak_mb": 483.62109375,
+      "n_params": 64586,
+      "epochs": 20
+    },
+    "transformer": {
+      "final": {
+        "token_acc": 0.17859375,
+        "exact_acc": 0.0,
+        "mse": 133.0614404296875
+      },
+      "best": {
+        "token_acc": 0.17859375,
+        "exact_acc": 0.0,
+        "mse": 133.0614404296875,
+        "epoch": 19
+      },
+      "sec_per_epoch": 42.6893470287323,
+      "total_sec": 870.7837498188019,
+      "ram_peak_mb": 520.0546875,
+      "n_params": 64242,
+      "epochs": 20
+    },
+    "cfc": {
+      "final": {
+        "token_acc": 0.12349609375,
+        "exact_acc": 0.0,
+        "mse": 76.7368359375
+      },
+      "best": {
+        "token_acc": 0.12369140625,
+        "exact_acc": 0.0,
+        "mse": 71.74421508789062,
+        "epoch": 10
+      },
+      "sec_per_epoch": 58.54232758283615,
+      "total_sec": 1187.2057507038116,
+      "ram_peak_mb": 520.0546875,
+      "n_params": 68857,
+      "epochs": 20
+    }
+  }
+}

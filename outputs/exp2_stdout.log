@@ -1,0 +1,102 @@
+D=10 cgmn: ya en JSON, se omite
+D=10 rnn: ya en JSON, se omite
+D=10 gru: ya en JSON, se omite
+D=10 transformer: ya en JSON, se omite
+=== D=10 (22 tokens) cfc epochs=40 ===
+[cfc] D=10 ep 1/40 mse=37.010 mae=5.197 lr=9.99e-04
+[cfc] D=10 ep 11/40 mse=11.840 mae=2.831 lr=8.27e-04
+[cfc] D=10 ep 21/40 mse=11.769 mae=2.816 lr=4.67e-04
+[cfc] D=10 ep 31/40 mse=11.690 mae=2.795 lr=1.29e-04
+[cfc] D=10 ep 40/40 mse=11.685 mae=2.793 lr=1.00e-05
+D=10 cfc: final mse=11.685 mae=2.793
+
+=== D=50 (102 tokens) cgmn epochs=30 ===
+[cgmn] D=50 ep 1/30 mse=25.052 mae=4.144 lr=9.97e-04
+[cgmn] D=50 ep 11/30 mse=0.163 mae=0.252 lr=7.07e-04
+[cgmn] D=50 ep 21/30 mse=0.004 mae=0.045 lr=2.14e-04
+[cgmn] D=50 ep 30/30 mse=0.004 mae=0.047 lr=1.00e-05
+D=50 cgmn: final mse=0.004 mae=0.047
+
+=== D=50 (102 tokens) rnn epochs=12 ===
+[rnn] D=50 ep 1/12 mse=16.569 mae=3.349 lr=9.84e-04
+[rnn] D=50 ep 11/12 mse=11.711 mae=2.802 lr=2.70e-05
+[rnn] D=50 ep 12/12 mse=11.715 mae=2.803 lr=1.00e-05
+D=50 rnn: final mse=11.715 mae=2.803
+
+=== D=50 (102 tokens) gru epochs=30 ===
+[gru] D=50 ep 1/30 mse=25.760 mae=4.202 lr=9.97e-04
+[gru] D=50 ep 11/30 mse=11.842 mae=2.831 lr=7.07e-04
+[gru] D=50 ep 21/30 mse=11.728 mae=2.806 lr=2.14e-04
+[gru] D=50 ep 30/30 mse=11.694 mae=2.796 lr=1.00e-05
+D=50 gru: final mse=11.694 mae=2.796
+
+=== D=50 (102 tokens) transformer epochs=30 ===
+[transformer] D=50 ep 1/30 mse=0.699 mae=0.716 lr=9.97e-04
+[transformer] D=50 ep 11/30 mse=0.001 mae=0.023 lr=7.07e-04
+[transformer] D=50 ep 21/30 mse=0.000 mae=0.002 lr=2.14e-04
+[transformer] D=50 ep 30/30 mse=0.000 mae=0.001 lr=1.00e-05
+D=50 transformer: final mse=0.000 mae=0.001
+
+=== D=50 (102 tokens) cfc epochs=12 ===
+[cfc] D=50 ep 1/12 mse=34.056 mae=4.938 lr=9.84e-04
+[cfc] D=50 ep 11/12 mse=11.693 mae=2.796 lr=2.70e-05
+[cfc] D=50 ep 12/12 mse=11.696 mae=2.797 lr=1.00e-05
+D=50 cfc: final mse=11.696 mae=2.797
+
+=== D=100 (202 tokens) cgmn epochs=20 ===
+[cgmn] D=100 ep 1/20 mse=21.889 mae=3.865 lr=9.94e-04
+[cgmn] D=100 ep 11/20 mse=3.587 mae=1.501 lr=4.29e-04
+[cgmn] D=100 ep 20/20 mse=0.773 mae=0.608 lr=1.00e-05
+D=100 cgmn: final mse=0.773 mae=0.608
+
+=== D=100 (202 tokens) rnn epochs=8 ===
+[rnn] D=100 ep 1/8 mse=14.136 mae=3.087 lr=9.64e-04
+[rnn] D=100 ep 8/8 mse=11.700 mae=2.798 lr=1.00e-05
+D=100 rnn: final mse=11.700 mae=2.798
+
+=== D=100 (202 tokens) gru epochs=20 ===
+[gru] D=100 ep 1/20 mse=22.386 mae=3.912 lr=9.94e-04
+[gru] D=100 ep 11/20 mse=11.782 mae=2.819 lr=4.29e-04
+[gru] D=100 ep 20/20 mse=11.652 mae=2.798 lr=1.00e-05
+D=100 gru: final mse=11.652 mae=2.798
+
+=== D=100 (202 tokens) transformer epochs=20 ===
+[transformer] D=100 ep 1/20 mse=0.362 mae=0.474 lr=9.94e-04
+[transformer] D=100 ep 11/20 mse=0.000 mae=0.009 lr=4.29e-04
+[transformer] D=100 ep 20/20 mse=0.000 mae=0.002 lr=1.00e-05
+D=100 transformer: final mse=0.000 mae=0.002
+
+=== D=100 (202 tokens) cfc epochs=8 ===
+[cfc] D=100 ep 1/8 mse=34.556 mae=4.980 lr=9.64e-04
+[cfc] D=100 ep 8/8 mse=11.712 mae=2.802 lr=1.00e-05
+D=100 cfc: final mse=11.712 mae=2.802
+
+=== D=200 (402 tokens) cgmn epochs=12 ===
+[cgmn] D=200 ep 1/12 mse=27.163 mae=4.339 lr=9.84e-04
+[cgmn] D=200 ep 11/12 mse=11.697 mae=2.797 lr=2.70e-05
+[cgmn] D=200 ep 12/12 mse=11.700 mae=2.799 lr=1.00e-05
+D=200 cgmn: final mse=11.700 mae=2.799
+
+=== D=200 (402 tokens) rnn epochs=6 ===
+[rnn] D=200 ep 1/6 mse=15.340 mae=3.213 lr=9.37e-04
+[rnn] D=200 ep 6/6 mse=11.708 mae=2.801 lr=1.00e-05
+D=200 rnn: final mse=11.708 mae=2.801
+
+=== D=200 (402 tokens) gru epochs=12 ===
+[gru] D=200 ep 1/12 mse=25.286 mae=4.163 lr=9.84e-04
+[gru] D=200 ep 11/12 mse=11.697 mae=2.798 lr=2.70e-05
+[gru] D=200 ep 12/12 mse=11.701 mae=2.799 lr=1.00e-05
+D=200 gru: final mse=11.701 mae=2.799
+
+=== D=200 (402 tokens) transformer epochs=12 ===
+[transformer] D=200 ep 1/12 mse=0.928 mae=0.840 lr=9.84e-04
+[transformer] D=200 ep 11/12 mse=0.000 mae=0.003 lr=2.70e-05
+[transformer] D=200 ep 12/12 mse=0.000 mae=0.003 lr=1.00e-05
+D=200 transformer: final mse=0.000 mae=0.003
+
+=== D=200 (402 tokens) cfc epochs=6 ===
+[cfc] D=200 ep 1/6 mse=28.849 mae=4.496 lr=9.37e-04
+[cfc] D=200 ep 6/6 mse=11.676 mae=2.794 lr=1.00e-05
+D=200 cfc: final mse=11.676 mae=2.794
+
+OK — resultados en /home/starlyn/Escritorio/Redes liquidas/collatz_memory_networks/outputs/exp2_delayed_memory.json

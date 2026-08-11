@@ -1,0 +1,16 @@
+L=10 cgmn: ya en JSON, se omite
+L=10 rnn: ya en JSON, se omite
+L=10 gru: ya en JSON, se omite
+L=10 transformer: ya en JSON, se omite
+L=10 cfc: ya en JSON, se omite
+L=50 cgmn: ya en JSON, se omite
+L=50 rnn: ya en JSON, se omite
+L=50 gru: ya en JSON, se omite
+L=50 transformer: ya en JSON, se omite
+L=50 cfc: ya en JSON, se omite
+L=100 cgmn: ya en JSON, se omite
+L=100 rnn: ya en JSON, se omite
+L=100 gru: ya en JSON, se omite
+L=100 transformer: ya en JSON, se omite
+L=100 cfc: ya en JSON, se omite
+OK — resultados en /home/starlyn/Escritorio/Redes liquidas/collatz_memory_networks/outputs/exp1_copy_task.json

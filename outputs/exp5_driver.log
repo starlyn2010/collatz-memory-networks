@@ -1,0 +1,254 @@
+[12:00:40] INICIO exp5
+[12:00:40] Lanzando A partition 0 y 1
+[12:48:55] A partition 0 terminado
+[12:48:56] A partition 1 terminado
+[12:48:56] B1
+=== B1 D=50 cgmn seed=0 ===
+[cgmn] ep 1/30 mse=29.7070 mae=4.6073
+[cgmn] ep 11/30 mse=0.1416 mae=0.2366
+[cgmn] ep 21/30 mse=0.0110 mae=0.0892
+[cgmn] ep 30/30 mse=0.0105 mae=0.0881
+B1 cgmn seed=0: mse=0.010
+
+=== B1 D=50 cgmn seed=1 ===
+[cgmn] ep 1/30 mse=24.9599 mae=4.1682
+[cgmn] ep 11/30 mse=7.6717 mae=2.2058
+[cgmn] ep 21/30 mse=0.2791 mae=0.3496
+[cgmn] ep 30/30 mse=0.1200 mae=0.2327
+B1 cgmn seed=1: mse=0.120
+
+=== B1 D=50 cgmn seed=2 ===
+[cgmn] ep 1/30 mse=24.4845 mae=4.1299
+[cgmn] ep 11/30 mse=0.1119 mae=0.2301
+[cgmn] ep 21/30 mse=0.0101 mae=0.0810
+[cgmn] ep 30/30 mse=0.0069 mae=0.0676
+B1 cgmn seed=2: mse=0.007
+
+=== B1 D=50 gru seed=0 ===
+[gru] ep 1/30 mse=21.9321 mae=3.9111
+[gru] ep 11/30 mse=0.0614 mae=0.1515
+[gru] ep 21/30 mse=0.0035 mae=0.0459
+[gru] ep 30/30 mse=0.0021 mae=0.0358
+B1 gru seed=0: mse=0.002
+
+=== B1 D=50 gru seed=1 ===
+[gru] ep 1/30 mse=27.9754 mae=4.4520
+[gru] ep 11/30 mse=0.0890 mae=0.2667
+[gru] ep 21/30 mse=0.0039 mae=0.0449
+[gru] ep 30/30 mse=0.0012 mae=0.0266
+B1 gru seed=1: mse=0.001
+
+=== B1 D=50 gru seed=2 ===
+[gru] ep 1/30 mse=21.3208 mae=3.8549
+[gru] ep 11/30 mse=0.8402 mae=0.6658
+[gru] ep 21/30 mse=0.0180 mae=0.0946
+[gru] ep 30/30 mse=0.0078 mae=0.0623
+B1 gru seed=2: mse=0.008
+
+=== B1 D=50 transformer seed=0 ===
+/home/starlyn/Escritorio/Redes liquidas/collatz_memory_networks/models/baselines.py:70: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(layer, n_layers)
+[transformer] ep 1/30 mse=5.6449 mae=1.9039
+[transformer] ep 11/30 mse=0.0108 mae=0.0812
+[transformer] ep 21/30 mse=0.0019 mae=0.0340
+[transformer] ep 30/30 mse=0.0012 mae=0.0268
+B1 transformer seed=0: mse=0.001
+
+=== B1 D=50 transformer seed=1 ===
+[transformer] ep 1/30 mse=7.2504 mae=2.1949
+[transformer] ep 11/30 mse=0.0620 mae=0.2184
+[transformer] ep 21/30 mse=0.0045 mae=0.0543
+[transformer] ep 30/30 mse=0.0020 mae=0.0341
+B1 transformer seed=1: mse=0.002
+
+=== B1 D=50 transformer seed=2 ===
+[transformer] ep 1/30 mse=6.4999 mae=2.0207
+[transformer] ep 11/30 mse=0.0269 mae=0.1283
+[transformer] ep 21/30 mse=0.0069 mae=0.0637
+[transformer] ep 30/30 mse=0.0014 mae=0.0297
+B1 transformer seed=2: mse=0.001
+
+
+=========== TABLA B ===========
+dist50   cgmn         mse=0.046±0.052
+dist50   gru          mse=0.004±0.003
+dist50   transformer  mse=0.002±0.000
+fig8_forget.png guardada
+OK — tarea B1
+[13:34:45] B1 terminado
+[13:34:45] B2
+=== B2 W=6 cgmn seed=0 ===
+[cgmn] ep 1/40 mse=99.3221 mae=9.5341
+[cgmn] ep 11/40 mse=0.4863 mae=0.5209
+[cgmn] ep 21/40 mse=0.0254 mae=0.0989
+[cgmn] ep 31/40 mse=0.0141 mae=0.0680
+[cgmn] ep 40/40 mse=0.0124 mae=0.0591
+B2 cgmn seed=0: mse=0.012
+
+=== B2 W=6 cgmn seed=1 ===
+[cgmn] ep 1/40 mse=87.3495 mae=8.8840
+[cgmn] ep 11/40 mse=0.5204 mae=0.5391
+[cgmn] ep 21/40 mse=0.0229 mae=0.0830
+[cgmn] ep 31/40 mse=0.0133 mae=0.0617
+[cgmn] ep 40/40 mse=0.0128 mae=0.0611
+B2 cgmn seed=1: mse=0.013
+
+=== B2 W=6 cgmn seed=2 ===
+[cgmn] ep 1/40 mse=98.4936 mae=9.4905
+[cgmn] ep 11/40 mse=0.5257 mae=0.5463
+[cgmn] ep 21/40 mse=0.0226 mae=0.0902
+[cgmn] ep 31/40 mse=0.0130 mae=0.0629
+[cgmn] ep 40/40 mse=0.0121 mae=0.0595
+B2 cgmn seed=2: mse=0.012
+
+=== B2 W=6 gru seed=0 ===
+[gru] ep 1/40 mse=105.2684 mae=9.8408
+[gru] ep 11/40 mse=0.8183 mae=0.6864
+[gru] ep 21/40 mse=0.0195 mae=0.0626
+[gru] ep 31/40 mse=0.0105 mae=0.0349
+[gru] ep 40/40 mse=0.0097 mae=0.0327
+B2 gru seed=0: mse=0.010
+
+=== B2 W=6 gru seed=1 ===
+[gru] ep 1/40 mse=94.0334 mae=9.2530
+[gru] ep 11/40 mse=0.4143 mae=0.4742
+[gru] ep 21/40 mse=0.0163 mae=0.0567
+[gru] ep 31/40 mse=0.0089 mae=0.0302
+[gru] ep 40/40 mse=0.0083 mae=0.0264
+B2 gru seed=1: mse=0.008
+
+=== B2 W=6 gru seed=2 ===
+[gru] ep 1/40 mse=100.4574 mae=9.5933
+[gru] ep 11/40 mse=0.7554 mae=0.6688
+[gru] ep 21/40 mse=0.0177 mae=0.0512
+[gru] ep 31/40 mse=0.0106 mae=0.0361
+[gru] ep 40/40 mse=0.0095 mae=0.0308
+B2 gru seed=2: mse=0.010
+
+=== B2 W=6 transformer seed=0 ===
+/home/starlyn/Escritorio/Redes liquidas/collatz_memory_networks/models/baselines.py:70: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(layer, n_layers)
+[transformer] ep 1/40 mse=8.2155 mae=2.3593
+[transformer] ep 11/40 mse=0.2783 mae=0.4494
+[transformer] ep 21/40 mse=0.0750 mae=0.2133
+[transformer] ep 31/40 mse=0.0249 mae=0.1262
+[transformer] ep 40/40 mse=0.0139 mae=0.0885
+B2 transformer seed=0: mse=0.014
+
+=== B2 W=6 transformer seed=1 ===
+[transformer] ep 1/40 mse=9.0288 mae=2.4475
+[transformer] ep 11/40 mse=0.1373 mae=0.3035
+[transformer] ep 21/40 mse=0.1129 mae=0.3031
+[transformer] ep 31/40 mse=0.0271 mae=0.1287
+[transformer] ep 40/40 mse=0.0101 mae=0.0704
+B2 transformer seed=1: mse=0.010
+
+=== B2 W=6 transformer seed=2 ===
+[transformer] ep 1/40 mse=13.7467 mae=3.0008
+[transformer] ep 11/40 mse=0.4527 mae=0.5316
+[transformer] ep 21/40 mse=0.3075 mae=0.4283
+[transformer] ep 31/40 mse=0.0964 mae=0.2339
+[transformer] ep 40/40 mse=0.0604 mae=0.1710
+B2 transformer seed=2: mse=0.060
+
+
+=========== TABLA B ===========
+dist50   cgmn         mse=0.046±0.052
+dist50   gru          mse=0.004±0.003
+dist50   transformer  mse=0.002±0.000
+win24    cgmn         mse=0.012±0.000
+win24    gru          mse=0.009±0.001
+win24    transformer  mse=0.028±0.023
+fig8_forget.png guardada
+OK — tarea B2
+[14:00:58] B2 terminado
+[14:00:58] C
+=== C cgmn seed=0 (train L=10, eval L=50/100) ===
+[cgmn] ep 1/40 token_acc=0.1385 exact_acc=0.0000 mse=25.9522
+[cgmn] ep 11/40 token_acc=0.7359 exact_acc=0.0176 mse=32.5182
+[cgmn] ep 21/40 token_acc=0.8434 exact_acc=0.1367 mse=43.2269
+[cgmn] ep 31/40 token_acc=0.8779 exact_acc=0.2227 mse=47.9543
+[cgmn] ep 40/40 token_acc=0.8896 exact_acc=0.2793 mse=48.7029
+C cgmn seed=0: L10=0.8896 L50=0.1582 L100=0.1360
+
+=== C cgmn seed=1 (train L=10, eval L=50/100) ===
+[cgmn] ep 1/40 token_acc=0.1611 exact_acc=0.0000 mse=19.3854
+[cgmn] ep 11/40 token_acc=0.7328 exact_acc=0.0156 mse=32.5919
+[cgmn] ep 21/40 token_acc=0.8461 exact_acc=0.1406 mse=41.9353
+[cgmn] ep 31/40 token_acc=0.8814 exact_acc=0.2246 mse=47.2120
+[cgmn] ep 40/40 token_acc=0.8881 exact_acc=0.2539 mse=48.2066
+C cgmn seed=1: L10=0.8881 L50=0.1701 L100=0.1431
+
+=== C cgmn seed=2 (train L=10, eval L=50/100) ===
+[cgmn] ep 1/40 token_acc=0.1721 exact_acc=0.0000 mse=20.4379
+[cgmn] ep 11/40 token_acc=0.7428 exact_acc=0.0293 mse=31.1383
+[cgmn] ep 21/40 token_acc=0.8406 exact_acc=0.1113 mse=40.8496
+[cgmn] ep 31/40 token_acc=0.8781 exact_acc=0.2344 mse=45.3069
+[cgmn] ep 40/40 token_acc=0.8912 exact_acc=0.2871 mse=46.2432
+C cgmn seed=2: L10=0.8912 L50=0.1641 L100=0.1372
+
+=== C gru seed=0 (train L=10, eval L=50/100) ===
+[gru] ep 1/40 token_acc=0.1896 exact_acc=0.0000 mse=20.1935
+[gru] ep 11/40 token_acc=0.7162 exact_acc=0.0117 mse=32.5607
+[gru] ep 21/40 token_acc=0.8387 exact_acc=0.1309 mse=39.5671
+[gru] ep 31/40 token_acc=0.8703 exact_acc=0.2227 mse=43.7857
+[gru] ep 40/40 token_acc=0.8826 exact_acc=0.2617 mse=44.4888
+C gru seed=0: L10=0.8826 L50=0.1618 L100=0.1377
+
+=== C gru seed=1 (train L=10, eval L=50/100) ===
+[gru] ep 1/40 token_acc=0.1430 exact_acc=0.0000 mse=27.9076
+[gru] ep 11/40 token_acc=0.7168 exact_acc=0.0137 mse=33.0575
+[gru] ep 21/40 token_acc=0.8354 exact_acc=0.0977 mse=41.8860
+[gru] ep 31/40 token_acc=0.8691 exact_acc=0.1934 mse=45.4126
+[gru] ep 40/40 token_acc=0.8855 exact_acc=0.2539 mse=46.0597
+C gru seed=1: L10=0.8855 L50=0.1696 L100=0.1385
+
+=== C gru seed=2 (train L=10, eval L=50/100) ===
+[gru] ep 1/40 token_acc=0.1771 exact_acc=0.0000 mse=23.2371
+[gru] ep 11/40 token_acc=0.7455 exact_acc=0.0234 mse=31.1300
+[gru] ep 21/40 token_acc=0.8467 exact_acc=0.1484 mse=38.9124
+[gru] ep 31/40 token_acc=0.8852 exact_acc=0.2500 mse=42.8883
+[gru] ep 40/40 token_acc=0.8947 exact_acc=0.2793 mse=44.1004
+C gru seed=2: L10=0.8947 L50=0.1597 L100=0.1376
+
+=== C transformer seed=0 (train L=10, eval L=50/100) ===
+/home/starlyn/Escritorio/Redes liquidas/collatz_memory_networks/models/baselines.py:70: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.enc = nn.TransformerEncoder(layer, n_layers)
+[transformer] ep 1/40 token_acc=0.2686 exact_acc=0.0000 mse=46.5123
+[transformer] ep 11/40 token_acc=0.9967 exact_acc=0.9688 mse=153.3708
+[transformer] ep 21/40 token_acc=1.0000 exact_acc=1.0000 mse=225.0657
+[transformer] ep 31/40 token_acc=1.0000 exact_acc=1.0000 mse=240.2432
+[transformer] ep 40/40 token_acc=1.0000 exact_acc=1.0000 mse=242.1367
+C transformer seed=0: L10=1.0000 L50=0.2087 L100=0.1635
+
+=== C transformer seed=1 (train L=10, eval L=50/100) ===
+[transformer] ep 1/40 token_acc=0.2625 exact_acc=0.0000 mse=54.4561
+[transformer] ep 11/40 token_acc=0.9947 exact_acc=0.9492 mse=166.7975
+[transformer] ep 21/40 token_acc=0.9998 exact_acc=0.9980 mse=232.7474
+[transformer] ep 31/40 token_acc=1.0000 exact_acc=1.0000 mse=247.8898
+[transformer] ep 40/40 token_acc=1.0000 exact_acc=1.0000 mse=249.8505
+C transformer seed=1: L10=1.0000 L50=0.2060 L100=0.1685
+
+=== C transformer seed=2 (train L=10, eval L=50/100) ===
+[transformer] ep 1/40 token_acc=0.2484 exact_acc=0.0000 mse=39.2089
+[transformer] ep 11/40 token_acc=0.9854 exact_acc=0.8672 mse=137.8770
+[transformer] ep 21/40 token_acc=1.0000 exact_acc=1.0000 mse=218.8429
+[transformer] ep 31/40 token_acc=1.0000 exact_acc=1.0000 mse=236.7648
+[transformer] ep 40/40 token_acc=1.0000 exact_acc=1.0000 mse=239.4641
+C transformer seed=2: L10=1.0000 L50=0.2135 L100=0.1699
+
+
+=========== TABLA C: generalización de longitud (train L=10, 40 ep) ===========
+cgmn         L=10 (train)   token_acc=0.8896±0.0013
+cgmn         L=50 (eval)    token_acc=0.1641±0.0048
+cgmn         L=100 (eval)   token_acc=0.1388±0.0031
+gru          L=10 (train)   token_acc=0.8876±0.0052
+gru          L=50 (eval)    token_acc=0.1637±0.0043
+gru          L=100 (eval)   token_acc=0.1379±0.0004
+transformer  L=10 (train)   token_acc=1.0000±0.0000
+transformer  L=50 (eval)    token_acc=0.2094±0.0031
+transformer  L=100 (eval)   token_acc=0.1673±0.0028
+fig9_lengen.png guardada
+OK — tarea C
+[14:14:44] C terminado
+[14:14:44] FIN exp5

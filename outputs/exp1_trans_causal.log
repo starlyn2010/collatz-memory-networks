@@ -1,0 +1,22 @@
+=== L=10 (21 tokens) transformer epochs=40 ===
+[TransformerBaseline] ep 1/40 ce=2.0648 token_acc=0.2629 exact_acc=0.0000 lr=9.99e-04
+[TransformerBaseline] ep 11/40 ce=0.0335 token_acc=0.9951 exact_acc=0.9512 lr=8.27e-04
+[TransformerBaseline] ep 21/40 ce=0.0010 token_acc=1.0000 exact_acc=1.0000 lr=4.67e-04
+[TransformerBaseline] ep 31/40 ce=0.0002 token_acc=1.0000 exact_acc=1.0000 lr=1.29e-04
+[TransformerBaseline] ep 40/40 ce=0.0002 token_acc=1.0000 exact_acc=1.0000 lr=1.00e-05
+L=10 transformer: {'token_acc': 1.0, 'exact_acc': 1.0, 'mse': 272.5911346435547}
+
+=== L=50 (101 tokens) transformer epochs=30 ===
+[TransformerBaseline] ep 1/30 ce=2.1552 token_acc=0.1558 exact_acc=0.0000 lr=9.97e-04
+[TransformerBaseline] ep 11/30 ce=1.7079 token_acc=0.3600 exact_acc=0.0000 lr=7.07e-04
+[TransformerBaseline] ep 21/30 ce=0.8035 token_acc=0.6968 exact_acc=0.0000 lr=2.14e-04
+[TransformerBaseline] ep 30/30 ce=0.6430 token_acc=0.7573 exact_acc=0.0000 lr=1.00e-05
+L=50 transformer: {'token_acc': 0.7573046875, 'exact_acc': 0.0, 'mse': 105.01954467773437}
+
+=== L=100 (201 tokens) transformer epochs=20 ===
+[TransformerBaseline] ep 1/20 ce=2.1407 token_acc=0.1317 exact_acc=0.0000 lr=9.94e-04
+[TransformerBaseline] ep 11/20 ce=2.0305 token_acc=0.1831 exact_acc=0.0000 lr=4.29e-04
+[TransformerBaseline] ep 20/20 ce=2.0077 token_acc=0.1985 exact_acc=0.0000 lr=1.00e-05
+L=100 transformer: {'token_acc': 0.19853515625, 'exact_acc': 0.0, 'mse': 115.41694458007812}
+
+OK — resultados en /home/starlyn/Escritorio/Redes liquidas/collatz_memory_networks/outputs/exp1_copy_task.json
