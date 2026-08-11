@@ -514,3 +514,55 @@ vanilla 512 vs bóveda 144 (ratio 3.6x); a 1024, 1024 vs 144 (7.1x); a 4096,
   (regla: "nunca tensores CPU implícitos dentro de un forward").
 - **Validado:** smoke local OK en ambos notebooks tras el fix; .ipynb
   regenerados (14 celdas). El autor re-corre "Ejecutar todo" en Colab.
+
+## Sesión 11 — Resultados T4 (1ª corrida) y bug del NaN en validación
+
+El autor corrió ambos notebooks en GPU T4 y descargó los resultados
+(`/home/starlyn/Descargas`): `results_tinystories (1).json`,
+`results_tinystories_slots.json`, `demo_cost*.json` y figuras (17:25).
+- Params justos: CGMN d=300 = 4.13M vs Transformer d=256 = 4.17M (1.0% diff).
+  CGMN sec: 323.5s (A) / 356.9s (B); cgmn train_ce 6.49→6.13, val_ppl 668→517.
+- Problema 1: `val_ppl` NaN en bóveda y archivador (train_ce finito).
+- Problema 2: la demo comparaba un vanilla SIN entrenar (aleatorio, ppl ~3300)
+  contra la memoria entrenada → comparación injusta.
+
+### Causa raíz del NaN (encontrada con repro local instrumentado)
+- NO era el padding ni los segmentos todo-pad por sí solos: era la MÁSCARA.
+- **Síntoma exacto:** con los MISMOS pesos y el MISMO batch, `model.train()`
+  daba logits finitos y `model.eval()` logits NaN (100% de la salida del
+  encoder). Reproducido con modelo recién creado, sin entrenar.
+- **Sonda de máscaras (eval):** bool attn + padding → NaN; FLOAT aditiva
+  (0.0/-1e9) + padding → finito; mask sola → finito; pad solo → finito;
+  nada → finito. Train con bool+pad → finito.
+- **Diagnóstico:** `nn.TransformerEncoder` en modo eval con máscara de
+  atención BOOL + key_padding_mask genera NaN (ruta de combinación de
+  máscaras distinta a train). Fix robusto: máscaras FLOAT aditivas en TODOS
+  los forwards (MiniTransformer y Vault/SlotModel), con
+  `enable_nested_tensor=False` en el encoder para que train/eval sean
+  idénticos.
+- Fix de higiene adicional: las filas de tarjetas/cajones quedaban con
+  máscara toda-False (no atienden a nada) → softmax(all -inf) = NaN en el
+  cálculo manual (384 filas = B×heads×M). Ahora las tarjetas se atienden
+  ENTRE SÍ (eye, salidas no usadas) — nunca al texto.
+
+### Demo de coste ahora HONESTA
+- Antes: vanilla creado nuevo (sin entrenar) evaluado con atención completa a
+  512/1024 → ppl ~3000+ absurdo, comparación inválida.
+- Ahora: el vanilla ES el Transformer entrenado de la pelea justa, evaluado
+  con ventana fija de SEQ (mismo presupuesto de entrenamiento, sin memoria
+  entre bloques) sobre los MISMOS libros de 512/1024 que la memoria.
+- La curva de FLOPs conserva la historia anti-burbuja honesta: el vanilla de
+  contexto completo paga 4·n_layers·ctx·d (crece con el libro), la
+  bóveda/archivador paga 4·n_layers·(S+M)·d constante (14x menos a 1024).
+- ppl del sim: vanilla 1427 vs bóveda 2256/archivador 2490 con celda mal
+  calentada (mse 63 en config reducida); en producción (mse 0.016) el
+  resultado real lo dará la corrida T4.
+
+### Validación y entregables
+- Smoke A y B OK (ahora con segmento todo-pad garantizado + asserts de
+  finitos — cazan este bug si regresa).
+- Simulación completa A y B OK sin NaN: CGMN 2886.6 / Transformer 1416.3 /
+  bóveda 2341.7 / archivador 2554.5 (ppl, config reducida).
+- .ipynb regenerados (14 celdas). Pendiente: el autor re-corre en T4.
+- Nota: el 138.9% de diff de params del sim es artefacto del tuner
+  (D_CGMN=64 < lo=128); en producción la diff fue 1.0% — correcto.

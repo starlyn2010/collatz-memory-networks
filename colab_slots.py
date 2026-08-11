@@ -261,15 +261,17 @@ class MiniTransformer(nn.Module):
             d_model=d_model, nhead=heads, dim_feedforward=ffn,
             batch_first=True, dropout=0.0, activation="gelu", norm_first=True,
             **ENC_EXTRA)
-        self.enc = nn.TransformerEncoder(layer, n_layers)
+        self.enc = nn.TransformerEncoder(layer, n_layers, enable_nested_tensor=False)
         self.out = nn.Linear(d_model, vocab_size, bias=False)
         self.out.weight = self.embed.weight
 
     def forward(self, x):
         T = x.shape[1]
+        # máscara FLOAT aditiva (0.0/-1e9): las bool + padding dan NaN en eval
         attn = torch.triu(torch.ones(T, T, dtype=torch.bool, device=x.device), diagonal=1)
+        attn = torch.zeros(T, T, device=x.device).masked_fill(attn, -1e9)
         h = self.enc(self.embed(x) + self.pos[:T].unsqueeze(0), mask=attn,
-                     src_key_padding_mask=(x == 0))
+                     src_key_padding_mask=(x == 0).float())
         return self.out(h)
 
 def create_model(name, cfg, d_model, seq_len):
@@ -416,7 +418,7 @@ class SlotModel(nn.Module):
             d_model=d, nhead=heads, dim_feedforward=ffn,
             batch_first=True, dropout=0.0, activation="gelu", norm_first=True,
             **ENC_EXTRA)
-        self.enc = nn.TransformerEncoder(layer, n_layers)
+        self.enc = nn.TransformerEncoder(layer, n_layers, enable_nested_tensor=False)
         self.out = nn.Linear(d, vocab_size, bias=False)
         self.out.weight = self.embed.weight
         # hipocampo: solo presta su puerta Collatz (W_m)
@@ -445,7 +447,11 @@ class SlotModel(nn.Module):
         attn_ok = torch.zeros(S + M, S + M, dtype=torch.bool, device=x_books.device)
         attn_ok[M:, M:] = amask       # S tokens bajo máscara causal
         attn_ok[M:, :M] = True        # tokens SI atienden a los cajones
-        # (los cajones no atienden a nada: solo aportan contexto de entrada)
+        # los cajones se atienden ENTRE SÍ (salidas no usadas): ninguna fila
+        # queda totalmente enmascarada -> evita NaN en softmax/softmax kernels
+        attn_ok[:M, :M] = torch.eye(M, dtype=torch.bool, device=x_books.device)
+        # máscara FLOAT aditiva: las bool + padding dan NaN en eval (torch)
+        attn_f = torch.zeros(S + M, S + M, device=x_books.device).masked_fill(~attn_ok, -1e9)
         self._compute_masks(K * S + M, x_books.device)
         alpha = torch.sigmoid(self.alpha)
         for k in range(K):
@@ -453,8 +459,9 @@ class SlotModel(nn.Module):
             emb = self.embed(xk) + self.pos[M:M + S].unsqueeze(0)   # (B, S, d)
             mems = self.read(slots)                           # cajones visibles
             xseq = torch.cat([mems, emb], dim=1)              # (B, S+M, d)
-            hidden = self.enc(xseq, mask=attn_ok, src_key_padding_mask=torch.cat(
-                [torch.zeros(B, M, dtype=torch.bool, device=x_books.device), (xk == 0)], dim=1))
+            hidden = self.enc(xseq, mask=attn_f,
+                              src_key_padding_mask=torch.cat(
+                [torch.zeros(B, M, dtype=torch.float32, device=x_books.device), (xk == 0).float()], dim=1))
             htok = hidden[:, M:]                              # (B, S, d) corteza
             # ---- escritura a cajones (solo afecta al bloque siguiente) ----
             q = self.Wq(slots)                                # (B, M, d)
@@ -550,45 +557,44 @@ def build_books_ctx(val_toks, stoi, ctx_len, n_books=30, seed=5):
         result.append(book[:ctx_len])
     return np.asarray(result, dtype="int64")
 
-def demo_cost(cfg, stoi, val_toks, out_dir):
-    """ppl y FLOPs/token de vanilla vs archivador a 512 y 1024."""
-    out = {"flops": {"vanilla": {}, "slots": {}}, "ppl": {"vanilla": {}, "slots": {}}}
+def demo_cost(cfg, stoi, val_toks, out_dir, vanilla, mem_model, mem_name, M):
+    """ppl y FLOPs/token HONESTOS: vanilla entrenado (ventana fija de SEQ, sin
+    memoria entre bloques) vs archivador (cajones), sobre los MISMOS libros de
+    contexto 512 y 1024. Ambos entrenados en bloques de SEQ."""
+    out = {"flops": {"vanilla": {}, mem_name: {}}, "ppl": {"vanilla": {}, mem_name: {}}}
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    slots_m = SlotModel(cfg["VOCAB_SIZE"], cfg["D_VAULT"], cfg["N_LAYERS"], cfg["HEADS"],
-                        cfg["FFN"], cfg["SEQ"], cfg["M_SLOTS"], cfg["KAPPA"]).to(DEVICE)
-    # cargar archivador entrenado si existe
-    ck = os.path.join(out_dir, "slots_best.pt")
-    if os.path.exists(ck):
-        slots_m.load_state_dict(torch.load(ck, map_location=DEVICE))
-
+    vanilla.eval()
+    mem_model.eval()
     for ctx in [512, 1024]:
         books = build_books_ctx(val_toks, stoi, ctx)
-        # VANILLA: ventana completa
-        vanilla = create_model("transformer", cfg, cfg["D_VAULT"], ctx)
-        vbooks = torch.from_numpy(books).to(DEVICE)
-        vce = vn = 0
-        with torch.no_grad():
-            for i in range(0, len(vbooks), cfg["BS"]):
-                xb = vbooks[i:i + cfg["BS"]]
-                lg = torch.log_softmax(vanilla(xb), -1)
-                mb = (xb != 0).float()
-                yy = torch.cat([xb[:, 1:], torch.zeros((xb.shape[0], 1), dtype=torch.int64, device=DEVICE)], dim=-1)
-                mkk = mb * torch.cat([mb[:, 1:], torch.zeros((xb.shape[0], 1), dtype=torch.float32, device=DEVICE)], dim=-1)
-                vce += float((-lg.gather(-1, yy.unsqueeze(-1)).squeeze(-1) * mkk).sum())
-                vn += float(mkk.sum())
-        out["ppl"]["vanilla"][ctx] = float(math.exp(vce / max(vn, 1)))
-        out["flops"]["vanilla"][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], ctx)
-        # ARCHIVADOR: ctx/128 bloques con cajones
         n_seg = ctx // cfg["SEQ"]
         xbooks = books.reshape(len(books), n_seg, cfg["SEQ"])
+        # VANILLA: evalúa cada bloque AISLADO (no ve nada del pasado)
         vce = vn = 0
         with torch.no_grad():
             for i in range(0, len(xbooks), cfg["BS"]):
                 xb = torch.from_numpy(xbooks[i:i + cfg["BS"]]).to(DEVICE)
-                lg, lm = slots_m(xb)
+                for k in range(n_seg):
+                    xk = xb[:, k]
+                    lg = torch.log_softmax(vanilla(xk), -1)
+                    mb2 = (xk != 0).float()
+                    yy = torch.cat([xk[:, 1:], torch.zeros((xk.shape[0], 1), dtype=torch.int64, device=DEVICE)], dim=-1)
+                    mkk = mb2 * torch.cat([mb2[:, 1:], torch.zeros((xk.shape[0], 1), dtype=torch.float32, device=DEVICE)], dim=-1)
+                    vce += float((-lg.gather(-1, yy.unsqueeze(-1)).squeeze(-1) * mkk).sum())
+                    vn += float(mkk.sum())
+        out["ppl"]["vanilla"][ctx] = float(math.exp(vce / max(vn, 1)))
+        # coste HONESTO de arquitectura: para conectar el pasado sin memoria,
+        # el vanilla de contexto completo paga atención sobre TODO el libro
+        out["flops"]["vanilla"][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], ctx)
+        # ARCHIVADOR: mismo libro, con cajones entre bloques
+        vce = vn = 0
+        with torch.no_grad():
+            for i in range(0, len(xbooks), cfg["BS"]):
+                xb = torch.from_numpy(xbooks[i:i + cfg["BS"]]).to(DEVICE)
+                lg, lm = mem_model(xb)
                 for k in range(n_seg):
                     lgk = lg[:, k]
                     mb2 = (xb[:, k] != 0).float()
@@ -596,13 +602,13 @@ def demo_cost(cfg, stoi, val_toks, out_dir):
                     mkk = mb2 * torch.cat([mb2[:, 1:], torch.zeros((xb.shape[0], 1), dtype=torch.float32, device=DEVICE)], dim=-1)
                     vce += float((-lgk.gather(-1, yy.unsqueeze(-1)).squeeze(-1) * mkk).sum())
                     vn += float(mkk.sum())
-        out["ppl"]["slots"][ctx] = float(math.exp(vce / max(vn, 1)))
-        out["flops"]["slots"][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], cfg["SEQ"] + cfg["M_SLOTS"])
+        out["ppl"][mem_name][ctx] = float(math.exp(vce / max(vn, 1)))
+        out["flops"][mem_name][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], cfg["SEQ"] + M)
 
     fig, ax1 = plt.subplots(figsize=(9, 5))
     ctxs = [512, 1024]
     ax1.plot(ctxs, [out["flops"]["vanilla"][c] / 1e6 for c in ctxs], "o-", color="#C44E52", label="vanilla (FLOPs/token)")
-    ax1.plot(ctxs, [out["flops"]["slots"][c] / 1e6 for c in ctxs], "s-", color="#55A868", label="archivador (FLOPs/token)")
+    ax1.plot(ctxs, [out["flops"][mem_name][c] / 1e6 for c in ctxs], "s-", color="#55A868", label=f"{mem_name} (FLOPs/token)")
     ax1.set_xlabel("contexto (tokens)"); ax1.set_ylabel("FLOPs de atención / token (M)")
     ax1.set_title("Los cajones no crecen con el contexto (anti-burbuja)")
     ax1.legend(); ax1.grid(alpha=0.3)
@@ -638,8 +644,8 @@ def run_all(cfg):
     d_tf, n_tf = tune_transformer_d(cfg, n_cgmn)
     print(f"   CGMN d={cfg['D_CGMN']} params={n_cgmn/1e6:.2f}M | Transformer d={d_tf} params={n_tf/1e6:.2f}M "
           f"({abs(n_tf-n_cgmn)/n_cgmn*100:.1f}% diff)")
-    for name, model in [("cgmn", cgmn), ("transformer", MiniTransformer(
-            cfg["VOCAB_SIZE"], d_tf, cfg["N_LAYERS"], cfg["HEADS"], cfg["FFN"], cfg["SEQ"]).to(DEVICE))]:
+    for name, model in [("cgmn", cgmn), ("transformer", (transformer_model := MiniTransformer(
+            cfg["VOCAB_SIZE"], d_tf, cfg["N_LAYERS"], cfg["HEADS"], cfg["FFN"], cfg["SEQ"]).to(DEVICE)))]:
         with torch.no_grad():
             nn.init.normal_(model.embed.weight, 0.0, 0.02)
             model.embed.weight[0].zero_()
@@ -667,7 +673,7 @@ def run_all(cfg):
 
     # ---- PARTE 4: demo de coste ----
     print("=== PARTE 4: DEMO DE COSTE 512 vs 1024 ===")
-    results["demo_cost"] = demo_cost(cfg, stoi, val_s, cfg["OUT_DIR"])
+    results["demo_cost"] = demo_cost(cfg, stoi, val_s, cfg["OUT_DIR"], transformer_model, slots_m, "archivador", cfg["M_SLOTS"])
 
     with open(os.path.join(cfg["OUT_DIR"], "results_tinystories_slots.json"), "w") as f:
         json.dump(results, f, indent=2)
@@ -723,10 +729,10 @@ if __name__ == "__main__":
         cfg = {**CONFIG, "SEQ": 16, "BS": 8, "VOCAB_SIZE": 60, "MIN_FREQ": 1,
                "N_STORIES": 40, "MAX_STORY": 60, "EPOCHS": 1, "EVAL_EVERY": 2,
                "D_CGMN": 32, "FFN": 64, "HEADS": 2, "D_VAULT": 32, "WARM_STEPS": 10,
-               "EPOCHS_VAULT": 1, "M_SLOTS": 3, "K_SEG": 2, "OUT_DIR": outdir}
+               "EPOCHS_VAULT": 1, "M_SLOTS": 3, "K_SEG": 3, "OUT_DIR": outdir}
         words = [f"w{i}" for i in range(40)]
         rng = random.Random(1)
-        toks = [rng.choices(words, k=40) for _ in range(cfg["N_STORIES"])]
+        toks = [rng.choices(words, k=24) for _ in range(cfg["N_STORIES"])]
         itos, stoi = build_tokenizer(toks, cfg["VOCAB_SIZE"], cfg["MIN_FREQ"])
         x, y, m = encode_pack(toks, stoi, cfg["SEQ"])
         assert x.shape[1] == cfg["SEQ"] and (x == 0).sum() > 0 and m.sum() > 0
@@ -739,13 +745,16 @@ if __name__ == "__main__":
         # archivador
         cell = warmup_hippocampus(cfg, 32, cfg["KAPPA"], outdir)
         slots_m = SlotModel(60, 32, 2, 2, 64, 16, 3, cfg["KAPPA"], warm_cell=cell)
-        xs, ms = encode_books(toks, stoi, 16, 2)
+        xs, ms = encode_books(toks, stoi, 16, 3)
         logits, lm = slots_m(torch.from_numpy(xs))
-        assert logits.shape == (xs.shape[0], 2, 16, 60), logits.shape
-        assert torch.isinf(logits).sum() == 0, "logits con inf"
+        assert logits.shape == (xs.shape[0], 3, 16, 60), logits.shape
+        assert torch.isfinite(logits).all() and torch.isfinite(lm).all(), "NaN/inf en archivador (segmento todo-pad)"
         h2 = train_vault(slots_m, xs, ms, xs[:8], ms[:8], cfg)
         assert h2["val_ppl"]
-        demo = demo_cost(cfg, stoi, toks, outdir)
+        tf = MiniTransformer(60, 32, 2, 2, 64, 16)
+        with torch.no_grad():
+            tf(torch.zeros(4, 16, dtype=torch.int64))
+        demo = demo_cost(cfg, stoi, toks, outdir, tf, slots_m, "archivador", 3)
         assert 512 in demo["flops"]["vanilla"] and "fig_cost_contexto_slots.png" in os.listdir(outdir)
         print("SMOKE OK")
     _smoke()
