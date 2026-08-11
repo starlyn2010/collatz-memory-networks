@@ -1,15 +1,16 @@
 # %% [markdown]
-# # CGMN vs Transformer — TinyStories: pelea justa + bóveda Collatz
+# # CGMN vs Transformer — TinyStories: pelea justa + archivador de cajones
 #
 # **Qué hace este notebook** (3 partes, todo automático):
 # 1. **Pelea justa**: CGMN y Transformer con **el mismo número de parámetros**
 #    (±1%) y **8 epochs** — para que CGMN tenga tiempo de estabilizarse.
-# 2. **Bóveda Collatz (hipocampo)**: CGMN aprende sola (calentamiento de 200
-#    pasos en memoria a+b) y luego sirve al Transformer como **memoria de
-#    apuntes fijos (16)** entre bloques de 128. El Transformer lee el texto; la
-#    puerta Collatz decide qué se guarda en la bóveda.
+# 2. **Archivador de cajones (slots)**: CGMN aprende sola (calentamiento de 800
+#    pasos en memoria a+b) y su puerta Collatz decide **qué entra a los 8
+#    cajones** entre bloques de 128. El Transformer lee el texto; los cajones
+#    guardan las propuestas de la corteza y el bloque siguiente los consulta.
+#    Es la opción 3 (archivador) frente a la bóveda de apuntes (Colab A).
 # 3. **Demo de coste a contexto 512 y 1024**: curvas de FLOPs/token que muestran
-#    la "anti-burbuja" (la bóveda no crece con el contexto; el vanilla sí).
+#    la "anti-burbuja" (los cajones no crecen con el contexto; el vanilla sí).
 #
 # **Instrucciones:** *Entorno de ejecución → Ejecutar todo* y te puedes ir.
 # Descarga del dataset, entrenamiento y descarga de resultados automáticos.
@@ -56,8 +57,8 @@ CONFIG = {
     "N_STORIES": 5000, "MAX_STORY": 250, "VAL_FRAC": 0.08,
     "EPOCHS": 8, "LR": 3e-4, "LR_MIN": 3e-5, "WD": 0.01, "CLIP": 1.0,
     "D_CGMN": 300, "N_LAYERS": 2, "HEADS": 4, "FFN": 1024,
-    # bóveda
-    "K_SEG": 3, "M_MEM": 16, "EPOCHS_VAULT": 4, "LR_VAULT": 3e-4,
+    # archivador de cajones
+    "K_SEG": 3, "M_SLOTS": 8, "EPOCHS_VAULT": 4, "LR_VAULT": 3e-4,
     "D_VAULT": 256, "WARM_STEPS": 800, "WARM_LR": 2e-3, "WARM_LR_MIN": 3e-5,
     "KAPPA": 10, "K_COLLATZ": 50, "BASE_SEED": 42,
     "EVAL_EVERY": 45, "SEED": 0,
@@ -382,16 +383,18 @@ def warmup_hippocampus(cfg, d_hipp, kappa_max, out_dir):
     return cell
 
 # %%
-# ========== Celda 8: BÓVEDA — modelo (corteza + hipocampo) ==========
-class VaultModel(nn.Module):
-    """Transformer (corteza) + CGMN (hipocampo) que guarda 16 apuntes fijos.
+# ========== Celda 8: ARCHIVADOR — modelo (corteza + cajones) ==========
+class SlotModel(nn.Module):
+    """Transformer (corteza) + archivador de cajones con puerta Collatz.
 
-    - Cada bloque de S tokens entra al Transformer; su hidden propone apuntes.
-    - El hipocampo (celda Collatz) los filtra con su puerta m_t y actualiza su
-      estado h (persistente entre bloques).
-    - Los últimes M estados del hipocampo son las 'tarjetas' que el siguiente
-      bloque consulta al inicio de su atención.
-    - El hipocampo NO lee el texto: recibe las propuestas (corteza->hipocampo).
+    - Cada bloque de S tokens entra al Transformer (corteza lee el texto).
+    - Al terminar el bloque, los tokens proponen escrituras a los M cajones
+      (atención de cajones estilo Set Transformer: cada cajón pesca lo suyo).
+    - La puerta Collatz (valuación en la posición global t) decide CUÁNTO de
+      cada propuesta entra al cajón.
+    - El bloque siguiente consulta los cajones (M tarjetas al inicio).
+    - El hipocampo CGMN NO lee el texto: solo presta su puerta Collatz
+      (calentada en memoria a+b antes de unirse).
     """
 
     def __init__(self, vocab_size, d, n_layers, heads, ffn, S, M, kappa_max,
@@ -408,11 +411,15 @@ class VaultModel(nn.Module):
         self.enc = nn.TransformerEncoder(layer, n_layers)
         self.out = nn.Linear(d, vocab_size, bias=False)
         self.out.weight = self.embed.weight
-        # hipocampo
+        # hipocampo: solo presta su puerta Collatz (W_m)
         self.hipp = CollatzCell(d, kappa_max) if warm_cell is None else warm_cell
-        self.write = nn.Linear(d, d, bias=False)    # corteza -> propuesta
-        self.read = nn.Linear(d, d, bias=False)     # estado -> tarjeta visible
-        self.mem_init = nn.Parameter(torch.zeros(1, M, d))
+        # archivador de cajones
+        self.slots = nn.Parameter(torch.randn(1, M, d) * 0.02)
+        self.Wq = nn.Linear(d, d, bias=False)      # consulta de cajón
+        self.Wk = nn.Linear(d, d, bias=False)      # llave de token
+        self.Wv = nn.Linear(d, d, bias=False)      # valor de token
+        self.read = nn.Linear(d, d, bias=False)    # cajón -> tarjeta visible
+        self.alpha = nn.Parameter(torch.full((1,), -2.0))  # fuerza de escritura
         self.masks = None
 
     def _compute_masks(self, T_total, device):
@@ -420,43 +427,45 @@ class VaultModel(nn.Module):
         self.masks = collatz_mask(self.hipp.W_m, T_total, self.kappa_max).to(device)
 
     def forward(self, x_books):
-        """x_books: (B, K, S). Procesa los K bloques con memoria persistente."""
+        """x_books: (B, K, S). Procesa los K bloques con cajones persistentes."""
         B, K, S = x_books.shape
         M = self.M
-        mem = self.mem_init.expand(B, -1, -1)                 # (B, M, d)
-        h = torch.zeros(B, self.d, device=x_books.device)
+        slots = self.slots.expand(B, -1, -1)                 # (B, M, d)
         logits, masks = [], []
         amask = torch.ones(S, S, dtype=torch.bool, device=x_books.device).triu(1)
-        # memoria al inicio: todos los tokens pueden atender a las tarjetas
+        # cajones al inicio: todos los tokens pueden atender a ellos
         attn_ok = torch.zeros(S + M, S + M, dtype=torch.bool, device=x_books.device)
         attn_ok[M:, M:] = amask       # S tokens bajo máscara causal
-        attn_ok[M:, :M] = True        # tokens SI atienden a las tarjetas
-        # (las tarjetas no atienden a nada: solo aportan contexto de entrada)
+        attn_ok[M:, :M] = True        # tokens SI atienden a los cajones
+        # (los cajones no atienden a nada: solo aportan contexto de entrada)
         self._compute_masks(K * S + M, x_books.device)
+        alpha = torch.sigmoid(self.alpha)
         for k in range(K):
             xk = x_books[:, k]                                # (B, S)
             emb = self.embed(xk) + self.pos[M:M + S].unsqueeze(0)   # (B, S, d)
-            mem = mem + self.pos[:M].unsqueeze(0)             # tarjetas: pos 0..M-1
-            xseq = torch.cat([mem, emb], dim=1)               # (B, S+M, d)
+            mems = self.read(slots)                           # cajones visibles
+            xseq = torch.cat([mems, emb], dim=1)              # (B, S+M, d)
             hidden = self.enc(xseq, mask=attn_ok, src_key_padding_mask=torch.cat(
                 [torch.zeros(B, M, dtype=torch.bool, device=x_books.device), (xk == 0)], dim=1))
-            # propuestas: corteza -> hipocampo (solo tokens reales, ceros para pad)
-            props = self.write(hidden[:, M:])                 # (B, S, d)
-            props = props * (xk != 0).unsqueeze(-1).float()
-            outs = []
+            htok = hidden[:, M:]                              # (B, S, d) corteza
+            # ---- escritura a cajones (solo afecta al bloque siguiente) ----
+            q = self.Wq(slots)                                # (B, M, d)
+            kk = self.Wk(htok)                                # (B, S, d)
+            v = self.Wv(htok)                                 # (B, S, d)
+            att = torch.softmax(q @ kk.transpose(-1, -2) / math.sqrt(self.d), dim=-1)
+            # puerta Collatz: en la posición global t decide cuánto entra
             base_mask_t = k * S
-            for t in range(S):
-                h = self.hipp(props[:, t], h, self.masks[base_mask_t + t])
-                outs.append(h)
-            hstack = torch.stack(outs, dim=1)                 # (B, S, d)
-            mem = self.read(hstack[:, -M:])                    # últimes M fotos
-            lg = torch.log_softmax(self.out(hidden[:, M:]), -1)
+            gs = torch.stack([self.masks[base_mask_t + t] for t in range(S)], dim=0)  # (S,d)
+            v = v * gs.unsqueeze(0)                           # propuesta filtrada
+            upd = att @ v                                     # (B, M, d)
+            slots = slots + alpha * upd
+            lg = torch.log_softmax(self.out(htok), -1)
             logits.append(lg)
             masks.append((xk != 0))
         return torch.stack(logits, dim=1), torch.stack(masks, dim=1)  # (B,K,S,V),(B,K,S)
 
 # %%
-# ========== Celda 9: entrenamiento de la bóveda ==========
+# ========== Celda 9: entrenamiento del archivador ==========
 def train_vault(model, xs, ms, xvs, mvs, cfg):
     opt = torch.optim.AdamW(model.parameters(), lr=cfg["LR_VAULT"], weight_decay=cfg["WD"])
     B = len(xs)
@@ -476,7 +485,7 @@ def train_vault(model, xs, ms, xvs, mvs, cfg):
             total_w = 0
             for k in range(cfg["K_SEG"]):
                 lg = logits[:, k]                              # (B, S, V)
-                yy = y if False else torch.cat([xb[:, k, 1:], torch.zeros((xb.shape[0], 1), dtype=torch.int64, device=DEVICE)], dim=-1)
+                yy = torch.cat([xb[:, k, 1:], torch.zeros((xb.shape[0], 1), dtype=torch.int64, device=DEVICE)], dim=-1)
                 mk = (mb[:, k] > 0).float()
                 mk = mk * torch.cat([mb[:, k, 1:], torch.zeros((xb.shape[0], 1), dtype=torch.float32, device=DEVICE)], dim=-1)
                 ce = ce + (-lg.gather(-1, yy.unsqueeze(-1)).squeeze(-1) * mk).sum()
@@ -505,19 +514,19 @@ def train_vault(model, xs, ms, xvs, mvs, cfg):
                 hist["train_ce"].append(float(loss.item()))
                 hist["val_ppl"].append(float(math.exp(vce)))
                 hist["step"].append(step)
-                with open(os.path.join(cfg["OUT_DIR"], "checkpoint_vault.json"), "w") as f:
-                    json.dump(dict(hist, name="vault"), f, indent=2)
-                print(f"[bóveda] step {step}/{total} train_ce={float(loss.item()):.4f} "
+                with open(os.path.join(cfg["OUT_DIR"], "checkpoint_slots.json"), "w") as f:
+                    json.dump(dict(hist, name="slots"), f, indent=2)
+                print(f"[archivador] step {step}/{total} train_ce={float(loss.item()):.4f} "
                       f"val_ce={vce:.4f} ppl={math.exp(vce):.1f} ({time.time()-t0:.0f}s)", flush=True)
                 model.train()
-    print(f"[bóveda] FIN {time.time()-t0:.0f}s — ppl final {hist['val_ppl'][-1]:.1f}", flush=True)
+    print(f"[archivador] FIN {time.time()-t0:.0f}s — ppl final {hist['val_ppl'][-1]:.1f}", flush=True)
     return hist
 
 # %%
 # ========== Celda 10: demo de coste a contexto 512 y 1024 ==========
 def flops_per_token(n_layers, d_model, L):
     """FLOPs de atención por token (aprox.): 4·L·d por capa por token.
-    L = longitud atendida (contexto N para vanilla; S+M para bóveda)."""
+    L = longitud atendida (contexto N para vanilla; S+M para cajones)."""
     return 4 * n_layers * L * d_model
 
 def build_books_ctx(val_toks, stoi, ctx_len, n_books=30, seed=5):
@@ -534,18 +543,18 @@ def build_books_ctx(val_toks, stoi, ctx_len, n_books=30, seed=5):
     return np.asarray(result, dtype="int64")
 
 def demo_cost(cfg, stoi, val_toks, out_dir):
-    """ppl y FLOPs/token de vanilla vs bóveda a 512 y 1024."""
-    out = {"flops": {"vanilla": {}, "vault": {}}, "ppl": {"vanilla": {}, "vault": {}}}
+    """ppl y FLOPs/token de vanilla vs archivador a 512 y 1024."""
+    out = {"flops": {"vanilla": {}, "slots": {}}, "ppl": {"vanilla": {}, "slots": {}}}
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    vault = VaultModel(cfg["VOCAB_SIZE"], cfg["D_VAULT"], cfg["N_LAYERS"], cfg["HEADS"],
-                       cfg["FFN"], cfg["SEQ"], cfg["M_MEM"], cfg["KAPPA"]).to(DEVICE)
-    # cargar bóveda entrenada si existe
-    ck = os.path.join(out_dir, "vault_best.pt")
+    slots_m = SlotModel(cfg["VOCAB_SIZE"], cfg["D_VAULT"], cfg["N_LAYERS"], cfg["HEADS"],
+                        cfg["FFN"], cfg["SEQ"], cfg["M_SLOTS"], cfg["KAPPA"]).to(DEVICE)
+    # cargar archivador entrenado si existe
+    ck = os.path.join(out_dir, "slots_best.pt")
     if os.path.exists(ck):
-        vault.load_state_dict(torch.load(ck, map_location=DEVICE))
+        slots_m.load_state_dict(torch.load(ck, map_location=DEVICE))
 
     for ctx in [512, 1024]:
         books = build_books_ctx(val_toks, stoi, ctx)
@@ -564,14 +573,14 @@ def demo_cost(cfg, stoi, val_toks, out_dir):
                 vn += float(mkk.sum())
         out["ppl"]["vanilla"][ctx] = float(math.exp(vce / max(vn, 1)))
         out["flops"]["vanilla"][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], ctx)
-        # BÓVEDA: ctx/128 bloques con memoria
+        # ARCHIVADOR: ctx/128 bloques con cajones
         n_seg = ctx // cfg["SEQ"]
         xbooks = books.reshape(len(books), n_seg, cfg["SEQ"])
         vce = vn = 0
         with torch.no_grad():
             for i in range(0, len(xbooks), cfg["BS"]):
                 xb = torch.from_numpy(xbooks[i:i + cfg["BS"]]).to(DEVICE)
-                lg, lm = vault(xb)
+                lg, lm = slots_m(xb)
                 for k in range(n_seg):
                     lgk = lg[:, k]
                     mb2 = (xb[:, k] != 0).float()
@@ -579,21 +588,21 @@ def demo_cost(cfg, stoi, val_toks, out_dir):
                     mkk = mb2 * torch.cat([mb2[:, 1:], torch.zeros((xb.shape[0], 1), dtype=torch.float32, device=DEVICE)], dim=-1)
                     vce += float((-lgk.gather(-1, yy.unsqueeze(-1)).squeeze(-1) * mkk).sum())
                     vn += float(mkk.sum())
-        out["ppl"]["vault"][ctx] = float(math.exp(vce / max(vn, 1)))
-        out["flops"]["vault"][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], cfg["SEQ"] + cfg["M_MEM"])
+        out["ppl"]["slots"][ctx] = float(math.exp(vce / max(vn, 1)))
+        out["flops"]["slots"][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], cfg["SEQ"] + cfg["M_SLOTS"])
 
     fig, ax1 = plt.subplots(figsize=(9, 5))
     ctxs = [512, 1024]
     ax1.plot(ctxs, [out["flops"]["vanilla"][c] / 1e6 for c in ctxs], "o-", color="#C44E52", label="vanilla (FLOPs/token)")
-    ax1.plot(ctxs, [out["flops"]["vault"][c] / 1e6 for c in ctxs], "s-", color="#55A868", label="bóveda (FLOPs/token)")
+    ax1.plot(ctxs, [out["flops"]["slots"][c] / 1e6 for c in ctxs], "s-", color="#55A868", label="archivador (FLOPs/token)")
     ax1.set_xlabel("contexto (tokens)"); ax1.set_ylabel("FLOPs de atención / token (M)")
-    ax1.set_title("La bóveda no crece con el contexto (anti-burbuja)")
+    ax1.set_title("Los cajones no crecen con el contexto (anti-burbuja)")
     ax1.legend(); ax1.grid(alpha=0.3)
     ax1.set_yscale("symlog")
     fig.tight_layout()
-    fig.savefig(os.path.join(out_dir, "fig_cost_contexto.png"), dpi=150)
+    fig.savefig(os.path.join(out_dir, "fig_cost_contexto_slots.png"), dpi=150)
     plt.close(fig)
-    with open(os.path.join(out_dir, "demo_cost.json"), "w") as f:
+    with open(os.path.join(out_dir, "demo_cost_slots.json"), "w") as f:
         json.dump(out, f, indent=2)
     print(">> demo de coste:", json.dumps(out))
     return out
@@ -630,21 +639,21 @@ def run_all(cfg):
         hist = train_model(name, model, x, y, m, xv, yv, mv, cfg)
         results[name] = {"nparams": count_params(model), "sec": time.time() - t0, **hist}
 
-    # ---- PARTE 2+3: calentamiento + bóveda ----
-    print("=== PARTE 2/3: HIPOCAMPO (calienta sola) + BÓVEDA ===")
+    # ---- PARTE 2+3: calentamiento + archivador ----
+    print("=== PARTE 2/3: HIPOCAMPO (calienta sola) + ARCHIVADOR ===")
     cell = warmup_hippocampus(cfg, cfg["D_VAULT"], cfg["KAPPA"], cfg["OUT_DIR"])
     t0 = time.time()
-    vault = VaultModel(cfg["VOCAB_SIZE"], cfg["D_VAULT"], cfg["N_LAYERS"], cfg["HEADS"],
-                       cfg["FFN"], cfg["SEQ"], cfg["M_MEM"], cfg["KAPPA"], warm_cell=cell).to(DEVICE)
+    slots_m = SlotModel(cfg["VOCAB_SIZE"], cfg["D_VAULT"], cfg["N_LAYERS"], cfg["HEADS"],
+                        cfg["FFN"], cfg["SEQ"], cfg["M_SLOTS"], cfg["KAPPA"], warm_cell=cell).to(DEVICE)
     with torch.no_grad():
-        nn.init.normal_(vault.embed.weight, 0.0, 0.02)
-        vault.embed.weight[0].zero_()
+        nn.init.normal_(slots_m.embed.weight, 0.0, 0.02)
+        slots_m.embed.weight[0].zero_()
     xs, ms = encode_books(train_s, stoi, cfg["SEQ"], cfg["K_SEG"])
     xvs, mvs = encode_books(val_s, stoi, cfg["SEQ"], cfg["K_SEG"])
-    print(f"bóveda dataset: {xs.shape[0]} libros × {cfg['K_SEG']} bloques")
-    hist_v = train_vault(vault, xs, ms, xvs, mvs, cfg)
-    torch.save(vault.state_dict(), os.path.join(cfg["OUT_DIR"], "vault_best.pt"))
-    results["vault"] = {"nparams": count_params(vault), "sec": time.time() - t0, **hist_v}
+    print(f"archivador dataset: {xs.shape[0]} libros × {cfg['K_SEG']} bloques")
+    hist_v = train_vault(slots_m, xs, ms, xvs, mvs, cfg)
+    torch.save(slots_m.state_dict(), os.path.join(cfg["OUT_DIR"], "slots_best.pt"))
+    results["slots"] = {"nparams": count_params(slots_m), "sec": time.time() - t0, **hist_v}
     n_hipp = count_params(cell)
     results["hippocampus"] = {"nparams_warm": n_hipp}
 
@@ -652,21 +661,22 @@ def run_all(cfg):
     print("=== PARTE 4: DEMO DE COSTE 512 vs 1024 ===")
     results["demo_cost"] = demo_cost(cfg, stoi, val_s, cfg["OUT_DIR"])
 
-    with open(os.path.join(cfg["OUT_DIR"], "results_tinystories.json"), "w") as f:
+    with open(os.path.join(cfg["OUT_DIR"], "results_tinystories_slots.json"), "w") as f:
         json.dump(results, f, indent=2)
 
     fig, ax = plt.subplots(figsize=(9, 5))
-    for name in ["cgmn", "transformer", "vault"]:
+    for name in ["cgmn", "transformer", "slots"]:
         if name in results:
             ax.plot(results[name]["step"], results[name]["val_ppl"], marker="o", label=name)
     ax.set_xlabel("step"); ax.set_ylabel("perplejidad de validación")
-    ax.set_title("Pelea justa + bóveda — TinyStories (menor = mejor)")
+    ax.set_title("Pelea justa + archivador — TinyStories (menor = mejor)")
     ax.legend(); ax.grid(alpha=0.3)
     fig.tight_layout()
-    fig.savefig(os.path.join(cfg["OUT_DIR"], "tinystories_ppl.png"), dpi=150)
-    print(">> guardado: results_tinystories.json, tinystories_ppl.png, fig_cost_contexto.png, vault_best.pt")
+    fig.savefig(os.path.join(cfg["OUT_DIR"], "tinystories_ppl_slots.png"), dpi=150)
+    print(">> guardado: results_tinystories_slots.json, tinystories_ppl_slots.png, "
+          "fig_cost_contexto_slots.png, slots_best.pt")
     print("RESULTADO FINAL:")
-    for name in ["cgmn", "transformer", "vault"]:
+    for name in ["cgmn", "transformer", "slots"]:
         r = results.get(name)
         if r:
             print(f"  {name:12s} ppl_final={r['val_ppl'][-1]:.1f} params={r['nparams']/1e6:.2f}M sec={r['sec']:.0f}")
@@ -680,7 +690,7 @@ if "get_ipython" in globals():
 def auto_download(cfg):
     try:
         from google.colab import files
-        for f in ["results_tinystories.json", "tinystories_ppl.png", "fig_cost_contexto.png", "demo_cost.json"]:
+        for f in ["results_tinystories_slots.json", "tinystories_ppl_slots.png", "fig_cost_contexto_slots.png", "demo_cost_slots.json"]:
             p = os.path.join(cfg["OUT_DIR"], f)
             if os.path.exists(p):
                 files.download(p)
@@ -696,16 +706,16 @@ if "get_ipython" in globals():
 print("Notebook terminado. Revisa /content/ para los resultados.")
 
 # %% [no-notebook]
-# ========== Smoke test local (python3 colab_tinystories.py) — NO va al .ipynb ===
+# ========== Smoke test local (python3 colab_slots.py) — NO va al .ipynb ====
 if __name__ == "__main__":
     def _smoke():
         print("SMOKE TEST (datos sintéticos, sin red)")
-        outdir = "/tmp/opencode/tinystories_smoke"
+        outdir = "/tmp/opencode/tinystories_slots_smoke"
         os.makedirs(outdir, exist_ok=True)
         cfg = {**CONFIG, "SEQ": 16, "BS": 8, "VOCAB_SIZE": 60, "MIN_FREQ": 1,
                "N_STORIES": 40, "MAX_STORY": 60, "EPOCHS": 1, "EVAL_EVERY": 2,
                "D_CGMN": 32, "FFN": 64, "HEADS": 2, "D_VAULT": 32, "WARM_STEPS": 10,
-               "EPOCHS_VAULT": 1, "M_MEM": 4, "K_SEG": 2, "OUT_DIR": outdir}
+               "EPOCHS_VAULT": 1, "M_SLOTS": 3, "K_SEG": 2, "OUT_DIR": outdir}
         words = [f"w{i}" for i in range(40)]
         rng = random.Random(1)
         toks = [rng.choices(words, k=40) for _ in range(cfg["N_STORIES"])]
@@ -718,15 +728,16 @@ if __name__ == "__main__":
         d_tf, n_tf = tune_transformer_d(cfg, count_params(cgmn), lo=16, hi=96)
         h = train_model("cgmn", cgmn, x, y, m, x[:4], y[:4], m[:4], cfg)
         assert h["val_ppl"]
-        # bóveda
+        # archivador
         cell = warmup_hippocampus(cfg, 32, cfg["KAPPA"], outdir)
-        vault = VaultModel(60, 32, 2, 2, 64, 16, 4, cfg["KAPPA"], warm_cell=cell)
+        slots_m = SlotModel(60, 32, 2, 2, 64, 16, 3, cfg["KAPPA"], warm_cell=cell)
         xs, ms = encode_books(toks, stoi, 16, 2)
-        logits, lm = vault(torch.from_numpy(xs))
+        logits, lm = slots_m(torch.from_numpy(xs))
         assert logits.shape == (xs.shape[0], 2, 16, 60), logits.shape
-        h2 = train_vault(vault, xs, ms, xs[:8], ms[:8], cfg)
+        assert torch.isinf(logits).sum() == 0, "logits con inf"
+        h2 = train_vault(slots_m, xs, ms, xs[:8], ms[:8], cfg)
         assert h2["val_ppl"]
         demo = demo_cost(cfg, stoi, toks, outdir)
-        assert 512 in demo["flops"]["vanilla"] and "fig_cost_contexto.png" in os.listdir(outdir)
+        assert 512 in demo["flops"]["vanilla"] and "fig_cost_contexto_slots.png" in os.listdir(outdir)
         print("SMOKE OK")
     _smoke()
