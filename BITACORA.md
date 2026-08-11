@@ -491,3 +491,26 @@ con punto dulce M≈S/8..S/4, saturación en ~64, y "empate" en M≈N).
 4·n_layers·L·d con L=ctx para vanilla vs L=S+M para bóveda/archivador: a 512,
 vanilla 512 vs bóveda 144 (ratio 3.6x); a 1024, 1024 vs 144 (7.1x); a 4096,
 4096 vs 144 (28x). Sim menor confirmó la constante de la bóveda entre 512 y 1024.
+
+### Bug reportado por el autor al correr en Colab (ambos notebooks) + fix
+- **Síntoma:** en GPU T4, `RuntimeError: Expected all tensors to be on the
+  same device, but found at least two devices, cuda:0 and cpu!` en
+  `g_embedding` (`k.unsqueeze(-1) >= torch.arange(...)`) — en la 1ª llamada de
+  CGMN dentro de la pelea justa.
+- **Causa raíz:** `torch.arange(1, kappa_max+1, dtype=torch.float32)` se creaba
+  SIEMPRE en CPU mientras `k` ya había sido movido a cuda:0 por
+  `self.valuations[:T].to(x.device)` (introducido en la Sesión 10 para hacer la
+  puerta entrenable). Invisible en local porque el smoke corre solo en CPU.
+- **Fix:** `g_embedding` crea el arange con `device=k.device` (hereda el
+  dispositivo de la entrada). Aplicado en colab_tinystories.py, colab_slots.py
+  y por paridad en `models/collatz_memory_cell.py`.
+- **Fix menor:** warning `enable_nested_tensor is True but use_nested_tensor is
+  False` → `enable_nested_tensor=False` solo si la firma de la API lo acepta
+  (detección por `inspect.signature`; torch local 2.13 CPU no lo acepta, el de
+  Colab sí).
+- **Lección registrada (nueva regla):** los notebooks corren en GPU — el smoke
+  local en CPU NO cubre errores de dispositivo; toda función que cree tensores
+  en un forward debe usar `device=` explícito o derivarlo de la entrada
+  (regla: "nunca tensores CPU implícitos dentro de un forward").
+- **Validado:** smoke local OK en ambos notebooks tras el fix; .ipynb
+  regenerados (14 celdas). El autor re-corre "Ejecutar todo" en Colab.

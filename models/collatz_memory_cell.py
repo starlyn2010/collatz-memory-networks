@@ -26,7 +26,7 @@ def g_embedding(k, kappa_max=10):
     if k.dim() == 0:
         k = k.unsqueeze(0)
     base = torch.tanh(k / 5.0)
-    ge = (k.unsqueeze(-1) >= torch.arange(1, kappa_max + 1, dtype=torch.float32)).float()
+    ge = (k.unsqueeze(-1) >= torch.arange(1, kappa_max + 1, dtype=torch.float32, device=k.device)).float()
     return torch.cat([base.unsqueeze(-1), ge], dim=-1)
 
 

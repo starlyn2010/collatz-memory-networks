@@ -37,6 +37,7 @@ except Exception:
 # %%
 # ========== Celda 2: config + imports ==========
 import json
+import inspect
 import math
 import os
 import random
@@ -67,6 +68,11 @@ CONFIG = {
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 random.seed(CONFIG["SEED"]); np.random.seed(CONFIG["SEED"]); torch.manual_seed(CONFIG["SEED"])
+try:
+    _sig = inspect.signature(nn.TransformerEncoderLayer.__init__)
+    ENC_EXTRA = {"enable_nested_tensor": False} if "enable_nested_tensor" in _sig.parameters else {}
+except Exception:
+    ENC_EXTRA = {}
 print("device:", DEVICE)
 
 # %%
@@ -97,7 +103,7 @@ def collatz_valuations(T, c=1, base_seed=42, K=50):
 def g_embedding(k, kappa_max):
     k = torch.as_tensor(k, dtype=torch.float32)
     base = torch.tanh(k / 5.0).unsqueeze(-1)
-    ge = (k.unsqueeze(-1) >= torch.arange(1, kappa_max + 1, dtype=torch.float32)).float()
+    ge = (k.unsqueeze(-1) >= torch.arange(1, kappa_max + 1, dtype=torch.float32, device=k.device)).float()
     return torch.cat([base, ge], dim=-1)
 
 def collatz_mask(W_m, T, kappa_max):
@@ -253,7 +259,8 @@ class MiniTransformer(nn.Module):
         nn.init.normal_(self.pos, 0.0, 0.02)
         layer = nn.TransformerEncoderLayer(
             d_model=d_model, nhead=heads, dim_feedforward=ffn,
-            batch_first=True, dropout=0.0, activation="gelu", norm_first=True)
+            batch_first=True, dropout=0.0, activation="gelu", norm_first=True,
+            **ENC_EXTRA)
         self.enc = nn.TransformerEncoder(layer, n_layers)
         self.out = nn.Linear(d_model, vocab_size, bias=False)
         self.out.weight = self.embed.weight
@@ -407,7 +414,8 @@ class SlotModel(nn.Module):
         nn.init.normal_(self.pos, 0.0, 0.02)
         layer = nn.TransformerEncoderLayer(
             d_model=d, nhead=heads, dim_feedforward=ffn,
-            batch_first=True, dropout=0.0, activation="gelu", norm_first=True)
+            batch_first=True, dropout=0.0, activation="gelu", norm_first=True,
+            **ENC_EXTRA)
         self.enc = nn.TransformerEncoder(layer, n_layers)
         self.out = nn.Linear(d, vocab_size, bias=False)
         self.out.weight = self.embed.weight
