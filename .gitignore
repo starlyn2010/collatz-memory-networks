@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# archivos personales (NO subir)
+INFORME_PARA_CLAUDE.md
+PROMPT_PARA_IA_CONTINUADORA.md
