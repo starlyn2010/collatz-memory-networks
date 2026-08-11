@@ -613,3 +613,69 @@ El autor corrió ambos notebooks en GPU T4 y descargó los resultados
 - La bóveda demuestra que la memoria a corto plazo (CollatzCell + W_m
   entrenable) aprende a filtrar y retener información relevante entre bloques.
 - Los archivos de resultados están en `resultados/` (v2 = post-fix).
+
+---
+
+## Sesión 12 — Experimento TinyStories-50k (decision maker: ¿bóveda o archivador?)
+
+**Fecha:** 2026-08-11.
+
+**Motivación (registrada en sesión 11):** con TinyStories (5000 historias) la
+bóveda (ppl 1.02) y el archivador (ppl 1.02) **memorizaron** el dataset
+(train_ce → 0.005): los números no discriminan entre ambas arquitecturas.
+Para saber cuál generaliza mejor hace falta un dataset 10× mayor donde la
+memorización sea imposible.
+
+**Cambio clave (consciente):** 1 epoch sobre **50,000 historias** (~12.5M
+tokens de train) ≈ mismo presupuesto de tokens que 8 epochs sobre 5000, pero
+cada historia se ve **una sola vez** → la ppl vuelve a medir generalización.
+
+**Configuración del experimento (CONFIG de ambos colabs nuevos):**
+
+| Parámetro | Antes (s11) | Ahora (s12) |
+|-----------|-------------|-------------|
+| N_STORIES | 5000 | **50000** |
+| VOCAB_SIZE | 10000 | **16000** |
+| VAL_FRAC | 0.08 | 0.05 (2500 historias val) |
+| EPOCHS (pelea justa) | 8 | **1** |
+| EVAL_EVERY | 45/60 | 150 |
+| EPOCHS_VAULT | 4 | **2** (presupuesto tokens respetado) |
+| Baseline fuerte | — | **vanilla@512** (VAN512_STORIES=20000, 1 epoch) |
+
+**Novedad: Parte 1.5 — baseline fuerte vanilla@512.**
+- Un Transformer con la misma d_tf de la pelea justa, entrenado directamente
+  a **contexto 512** (bloques de 512, 20,000 historias, 1 epoch).
+- Es el rival honesto de la anti-burbuja: si a 512 casi iguala a la memoria,
+  hay que preguntarse qué aporta la memoria; si la memoria gana con 16× menos
+  coste de atención, la anti-burbuja queda demostrada sobre datos reales.
+
+**Novedad: demo de coste a 4 contextos (512/1024/2048/4096).**
+- Curvas de FLOPs/token de atención completas: vanilla crece
+  (16.78M → 134.2M a 4096), bóveda/archivador **constante** (bóveda 294,912;
+  archivador 278,528) → **~28× menos FLOPs a 4096**.
+- El vanilla@512 evaluado a contexto completo 512 (ppl real, marcado en la
+  figura) + proyección de FLOPs para los libros más largos.
+
+**Validación de la bóveda/archivador acotada:** `val_s[:1500]` libros en
+`encode_books` (antes val completo) — 1500 libros consiguen cientos de miles
+de tokens de validación con coste evaluable en T4.
+
+**Archivos nuevos:**
+
+| Archivo | Contenido |
+|---------|-----------|
+| `colab_tiny50k_vault.py` + `.ipynb` | Colab C: pelea justa 50k + Parte 1.5 + bóveda + demo 4 ctx. Salidas: `results_tiny50k_vault.json`, `tinystories_ppl_50k_vault.png`, `demo_cost.json`, `fig_cost_contexto.png` |
+| `colab_tiny50k_slots.py` + `.ipynb` | Colab D: ídem pero archivador (M_SLOTS=8). Salidas: `results_tiny50k_slots.json`, `tinystories_ppl_50k_slots.png`, `demo_cost_slots.json`, `fig_cost_contexto_slots.png` |
+
+**Smoke tests locales:** ambos pasan (sintético: 4 ctx en flops/ppl, vanilla512
+ppl real ~59.5, sin NaN).
+
+**Instrucciones al investigador:** Colab → T4 GPU → Ejecutar todo (~45-60 min
+cada uno). Descarga automática al final.**Resultado esperado/predicción ("qué implica cada desenlace"):**
+- **Bóveda/archivador ≪ vanilla@128:** la memoria a corto plazo Collatz es un
+  aporte real más allá de la memorización.
+- **Bóveda ≈ archivador:** el mecanismo de búsqueda (tarjetas vs cajones) no
+  es el factor decisivo; se elige por coste (archivador, 6% menos FLOPs y ~2×
+  más rápido).
+- **Bóveda ≪ archivador (o viceversa):** la exploración de sesión 11 (opción 3)
+  queda justificada y el protocolo de la sesión 13 apunta al ganador.
