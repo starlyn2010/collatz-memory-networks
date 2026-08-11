@@ -396,3 +396,98 @@ fix: init N(0,0.02) en ambos modelos (paridad) → CE de arranque ≈ ln(vocab);
 las celdas definían pero no ejecutaban → disparo automático bajo `get_ipython`;
 (3) OUT_DIR robusto con os.makedirs. En Colab usará GPU T4 (~200 pasos/modelo,
 ≈30 min total); fuera de Colab degrada sin errores.
+
+---
+
+## 2026-08-11 — Sesión 10: repo público + bóveda y archivador (Colabs A/B)
+
+### Decisión de sesión y resultado del Colab 1.0 ya corrido por el autor
+El usuario corrió el Colab TinyStories 1.0 en T4 y trajo los resultados en
+`results_tinystories.json` + `tinystories_ppl.png`:
+- **CGMN** (3.39M params): ppl **639→622**, val_ce 6.46→6.43 (steps 90/180/240).
+- **Transformer** (4.17M params): ppl **275→139**, val_ce 5.62→4.94 (240 pasos,
+  <1 min en T4). El Transformer gana claramente en LM.
+- **Interpretación registrada:** la atención paralela vence al recurrente
+  secuencial en lenguaje; 240 pasos son pocos; CGMN no compite en LM pero su
+  nicho verificado sigue siendo la memoria de trabajo (exp2/Delayed Memory).
+
+**Decisión del autor (sesión de diseño, aprobada):** nuevo experimento **"pelea
+justa + bóveda de memoria Collatz"**. Params iguales (±1%) entre CGMN y
+Transformer, **8 epochs** (no 2), y una **bóveda** donde el Transformer es la
+corteza que lee el texto; el hipocampo CGMN **no lee el texto** — recibe
+propuestas de escritura de la corteza y su **puerta Collatz** decide qué se
+guarda entre bloques. **El hipocampo aprenderá SOLO primero** (calentamiento en
+memoria a+b) y después sirve al Transformer. Criterio de éxito honesto: ppl
+similar al vanilla gastando ~N/(S+M) menos FLOPs de atención por token (estilo
+Transformer-XL), con demo a contexto 512 y 1024 (anti-burbuja). Limite: ~1.5h
+por sesión de Colab.
+
+Dos variantes autorizadas y construidas:
+- **Colab A — bóveda de apuntes fijos** (`colab_tinystories.py`, tarjetas M=16):
+  hipocampo CollatzCell procesa props y sus M últimas fotos son las tarjetas.
+- **Colab B — archivador de cajones** (`colab_slots.py`, slots M=8): atención de
+  cajones estilo Set Transformer (corteza→propuestas), puerta Collatz decide
+  cuánto entra a cada cajón; consultados al inicio del bloque siguiente.
+  (Tratamiento de **exploración**, no de victoria.)
+
+### Spec escrito
+`docs/superpowers/specs/2026-08-11-boveda-collatz-design.md` (diseño aprobado,
+con punto dulce M≈S/8..S/4, saturación en ~64, y "empate" en M≈N).
+
+### Repo GitHub público
+- Repo **público** (recomendado para investigación): creado y pusheado
+  `https://github.com/starlyn2010/collatz-memory-networks` (ramas main,
+  auth gh starlyn2010, token con scope repo).
+- Commits: `e17a5d4` (fase local + spec + notebooks + resultados) y `4fc1b06`
+  (bóveda + archivador). `.gitignore` (__pycache__, *.pyc, .DS_Store),
+  `README.md` raíz nuevo, `colab/README.md` actualizado.
+- ⚠️ AVISO PENDIENTE al autor: `INFORME_PARA_CLAUDE.md` y
+  `PROMPT_PARA_IA_CONTINUADORA.md` quedaron dentro del repo público → el autor
+  puede pedir quitarlos si no los quiere visibles.
+
+### Implementación y fixes (registrados, con razón)
+- Fix SyntaxError: `json.dump({k: hist[k] for k in hist, "name": name}, ...)`
+  (dict-comprehension inválida) → `dict(hist, name=name)` (2 sitios).
+- Fix bug real máscara de atención de la bóveda: `attn_ok[M:, :M]` nunca se
+  activaba → los tokens NO veían las tarjetas; añadida la línea.
+- Fix bug real posiciones: las tarjetas no recibían posición y `pos[:M]` se
+  sumaba a todo el tensor (RuntimeError tamaño 20 vs 4); ahora tarjetas→pos[:M],
+  tokens→pos[M:M+S].
+- Fix bug real warmup: `(h@head.weight.T + bias) - yb[:,0]` con shapes (B,1)-(B,)
+  hacia broadcasting a (B,B) sin crash (pérdida por pares, mal); fix con
+  `.squeeze(-1)`.
+- Fix diseño: `collatz_mask` usaba `no_grad` y CGMN precomputaba máscaras una
+  sola vez en `__init__` → **puerta W_m congelada en ~0.98** (no aprendía, y
+  contradecía "la puerta Collatz decide qué se guarda"); ahora las máscaras se
+  calculan en CADA forward (W_m entrenable, igual que `compute_mask` del
+  proyecto local en `models/collatz_memory_cell.py`). Aplicado a CGMN,
+  VaultModel/SlotModel y warmup.
+- Fix warmup: LR 3e-4 no despegaba (MSE≈13 en 200 pasos); ahora `WARM_LR=2e-3`
+  con coseno → **MSE 0.016 en 400 pasos** (d=256) (verificado). WARM_STEPS 200→800.
+- Removido código muerto en train_vault (variables `y`/`k` antes del loop).
+
+### Validación registrada ANTES de entrega (ambos notebooks)
+- Smoke local (`python3 colab_tinystories.py` / `colab_slots.py`): datos
+  sintéticos, sin red → SMOKE OK (incluye shape de logits, sin inf).
+- Simulación completa de celdas en orden de Colab (get_ipython simulado + CONFIG
+  reducido para CPU): descarga, tokenizer, parte 1 (ambos modelos), calentamiento,
+  bóveda/archivador, demo 512/1024, gráficas y JSON → SIMULACIÓN COMPLETA OK.
+- `build_ipynb.py` → `colab_tinystories.ipynb` (14 celdas) y `colab_slots.ipynb`
+  (14 celdas), ambos sin bloque smoke.
+
+### Configuraciones de producción (dentro de los notebooks)
+- CONFIG: SEQ 128, BS 64, VOCAB ~10k, N_STORIES 5000, EPOCHS 8 (pelea justa),
+  D_CGMN 300, N_LAYERS 2, HEADS 4, FFN 1024, LR 3e-4→3e-5 coseno, WD 0.01,
+  CLIP 1.0, EVAL_EVERY 45. Bóveda: K_SEG 3, M_MEM 16, D_VAULT 256,
+  EPOCHS_VAULT 4, LR_VAULT 3e-4. Archivador: M_SLOTS 8 (resto igual).
+  Calentamiento: WARM_STEPS 800, WARM_LR 2e-3.
+- Salidas Colab A: results_tinystories.json, tinystories_ppl.png,
+  fig_cost_contexto.png, demo_cost.json, checkpoint_*.json, vault_best.pt.
+- Salidas Colab B: results_tinystories_slots.json, tinystories_ppl_slots.png,
+  fig_cost_contexto_slots.png, demo_cost_slots.json, checkpoint_slots.json,
+  slots_best.pt.
+
+### FLOPs/token de la demo (esperado)
+4·n_layers·L·d con L=ctx para vanilla vs L=S+M para bóveda/archivador: a 512,
+vanilla 512 vs bóveda 144 (ratio 3.6x); a 1024, 1024 vs 144 (7.1x); a 4096,
+4096 vs 144 (28x). Sim menor confirmó la constante de la bóveda entre 512 y 1024.
