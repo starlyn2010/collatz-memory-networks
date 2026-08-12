@@ -442,7 +442,8 @@ class SlotModel(nn.Module):
         M = self.M
         slots = self.slots.expand(B, -1, -1)                 # (B, M, d)
         logits, masks = [], []
-        amask = torch.ones(S, S, dtype=torch.bool, device=x_books.device).triu(1)
+        # máscara causal CORRECTA: token r atiende a columnas c <= r (tril(0))
+        amask = torch.ones(S, S, dtype=torch.bool, device=x_books.device).tril(0)
         # cajones al inicio: todos los tokens pueden atender a ellos
         attn_ok = torch.zeros(S + M, S + M, dtype=torch.bool, device=x_books.device)
         attn_ok[M:, M:] = amask       # S tokens bajo máscara causal
@@ -751,6 +752,9 @@ if __name__ == "__main__":
         assert torch.isfinite(logits).all() and torch.isfinite(lm).all(), "NaN/inf en archivador (segmento todo-pad)"
         h2 = train_vault(slots_m, xs, ms, xs[:8], ms[:8], cfg)
         assert h2["val_ppl"]
+        # REGRESIÓN ANTI-FUGA: con palabras aleatorias sin estructura, la ce de
+        # validación NO puede colapsar (~0) salvo que el modelo vea el futuro.
+        assert h2["val_ppl"][-1] > math.exp(1.0), f"¿fuga temporal? val_ppl={h2['val_ppl'][-1]:.3f}"
         tf = MiniTransformer(60, 32, 2, 2, 64, 16)
         with torch.no_grad():
             tf(torch.zeros(4, 16, dtype=torch.int64))

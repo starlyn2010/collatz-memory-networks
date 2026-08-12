@@ -447,7 +447,8 @@ class SlotModel(nn.Module):
         M = self.M
         slots = self.slots.expand(B, -1, -1)                 # (B, M, d)
         logits, masks = [], []
-        amask = torch.ones(S, S, dtype=torch.bool, device=x_books.device).triu(1)
+        # máscara causal CORRECTA: token r atiende a columnas c <= r (tril(0))
+        amask = torch.ones(S, S, dtype=torch.bool, device=x_books.device).tril(0)
         # cajones al inicio: todos los tokens pueden atender a ellos
         attn_ok = torch.zeros(S + M, S + M, dtype=torch.bool, device=x_books.device)
         attn_ok[M:, M:] = amask       # S tokens bajo máscara causal
@@ -581,11 +582,14 @@ def demo_cost(cfg, stoi, val_toks, out_dir, vanilla, mem_model, mem_name, M, van
         books = build_books_ctx(val_toks, stoi, ctx)
         n_seg = ctx // cfg["SEQ"]
         xbooks = books.reshape(len(books), n_seg, cfg["SEQ"])
+        # lote adaptativo: el stack de logits (B,K,S,V) en fp32 pesa B*K*S*V*4
+        # bytes; a 4096 son 262 MB por libro -> trocear para no OOM en T4 (14 GB)
+        b_demo = max(1, min(cfg["BS"], 512 * 1024 * 1024 // (n_seg * cfg["SEQ"] * cfg["VOCAB_SIZE"] * 4)))
         # VANILLA: evalúa cada bloque AISLADO (no ve nada del pasado)
         vce = vn = 0
         with torch.no_grad():
-            for i in range(0, len(xbooks), cfg["BS"]):
-                xb = torch.from_numpy(xbooks[i:i + cfg["BS"]]).to(DEVICE)
+            for i in range(0, len(xbooks), b_demo):
+                xb = torch.from_numpy(xbooks[i:i + b_demo]).to(DEVICE)
                 for k in range(n_seg):
                     xk = xb[:, k]
                     lg = torch.log_softmax(vanilla(xk), -1)
@@ -603,8 +607,8 @@ def demo_cost(cfg, stoi, val_toks, out_dir, vanilla, mem_model, mem_name, M, van
         # ARCHIVADOR: mismo libro, con cajones entre bloques
         vce = vn = 0
         with torch.no_grad():
-            for i in range(0, len(xbooks), cfg["BS"]):
-                xb = torch.from_numpy(xbooks[i:i + cfg["BS"]]).to(DEVICE)
+            for i in range(0, len(xbooks), b_demo):
+                xb = torch.from_numpy(xbooks[i:i + b_demo]).to(DEVICE)
                 lg, lm = mem_model(xb)
                 for k in range(n_seg):
                     lgk = lg[:, k]
@@ -615,6 +619,8 @@ def demo_cost(cfg, stoi, val_toks, out_dir, vanilla, mem_model, mem_name, M, van
                     vn += float(mkk.sum())
         out["ppl"][mem_name][ctx] = float(math.exp(vce / max(vn, 1)))
         out["flops"][mem_name][ctx] = flops_per_token(cfg["N_LAYERS"], cfg["D_VAULT"], cfg["SEQ"] + M)
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     # BASELINE FUERTE: vanilla@512 a contexto completo 512 (ppl real)
     if vanilla512 is not None:
         vanilla512.eval()
@@ -799,6 +805,9 @@ if __name__ == "__main__":
         assert torch.isfinite(logits).all() and torch.isfinite(lm).all(), "NaN/inf en archivador (segmento todo-pad)"
         h2 = train_vault(slots_m, xs, ms, xs[:8], ms[:8], cfg)
         assert h2["val_ppl"]
+        # REGRESIÓN ANTI-FUGA: con palabras aleatorias sin estructura, la ce de
+        # validación NO puede colapsar (~0) salvo que el modelo vea el futuro.
+        assert h2["val_ppl"][-1] > math.exp(1.0), f"¿fuga temporal? val_ppl={h2['val_ppl'][-1]:.3f}"
         tf = MiniTransformer(60, 32, 2, 2, 64, 16)
         with torch.no_grad():
             tf(torch.zeros(4, 16, dtype=torch.int64))

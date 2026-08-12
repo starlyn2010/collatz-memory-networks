@@ -679,3 +679,50 @@ cada uno). Descarga automática al final.**Resultado esperado/predicción ("qué
   más rápido).
 - **Bóveda ≪ archivador (o viceversa):** la exploración de sesión 11 (opción 3)
   queda justificada y el protocolo de la sesión 13 apunta al ganador.
+
+---
+
+## Sesión 12b — FUGA TEMPORAL encontrada y corregida (resultados de memoria inválidos)
+
+**Fecha:** 2026-08-11 (tarde).
+
+**Qué pasó:** el investigador ejecutó los colabs C y D en T4. Parte 1/1.5/2/3
+perfectas, pero: (1) `OutOfMemoryError` en la demo a 4096, y (2) sospecha
+enorme: **val_ce 0.0001-0.0002 en historias NUNCA vistas** (2500 de val, cada
+train solo 1 vez). Predecir texto invisible a ce 0.0002 es imposible → el
+modelo leía la respuesta.
+
+**Causa raíz (demostrada, no especulada):** en `VaultModel.forward` y
+`SlotModel.forward`, la máscara de atención del bloque de texto era
+`amask = torch.ones(S, S).triu(1)` — pero en PyTorch un `attn_mask` bool
+significa `True = ATENDER`. `triu(1)` permite **solo columnas c > r**:
+cada token atendía EXCLUSIVAMENTE al futuro y nunca al pasado. Prueba con
+pesos de atención reales (`attn_weights_probe.py`): query 3 con triu(1) →
+pasado+self 0.00, FUTURO 0.08; con tril(0) → pasado+self 0.08, FUTURO 0.00.
+
+**Consecuencia honesta:** los ppl de BÓVEDA (1.02) y ARCHIVADOR (1.02) de las
+sesiones 10-11 (v1 y v2) y de la primera corrida 50k son **INVÁLIDOS** — no
+era memorización, era leer el futuro. La pelea justa (CGMN 480/544, Transformer
+70/50.6, vanilla@512 94.8) NO usa esa máscara (`MiniTransformer.forward` usa
+`triu(1).masked_fill(-1e9)`, semántica correcta) → **sus números siguen siendo
+válidos**.
+
+**Fix aplicado en los 4 colabs:** `amask = torch.ones(S, S).tril(0)` (causal
+correcta: c <= r). Correcciones menores: `demo_cost` con lote adaptativo
+(`b_demo`: el stack de logits (B,K,S,V) pesa B·K·S·V·4; a 4096 = 262 MB/libro
+→ trocear) + `torch.cuda.empty_cache()` entre contextos.
+
+**Verificación de la corrección:**
+- `attn_weights_probe.py`: pesos de atención confirman tril(0) = pasado+self.
+- `leak_probe2.py`: con la máscara vieja el modelo copia el futuro; con la
+  nueva aprende de verdad (ce 7.0 → 5.45 bajando en datos estructurados, sin
+  colapsar a 0).
+- Smokes con **regresión anti-fuga nueva**: en palabras aleatorias sin
+  estructura, `val_ppl > e^1` obligatorio (con fuga daba ~1.0). Los 4 smokes
+  pasan (bóveda/archivador: ppl ~7e11 = ce alta = sin fuga, datos aleatorios).
+
+**Estado tras el fix:** los modelos de memoria ya no pueden leer el futuro;
+en datos reales TinyStories-50k su ppl será alta al inicio y debería bajar con
+entrenamiento (aún no medido — requiere rerun en T4). La demo 512→4096 ya no
+hará OOM. **El investigador debe RE-EJECUTAR colabs C y D** (Reiniciar
+entorno → T4 → Ejecutar todo).
