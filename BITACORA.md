@@ -721,8 +721,30 @@ correcta: c <= r). Correcciones menores: `demo_cost` con lote adaptativo
   estructura, `val_ppl > e^1` obligatorio (con fuga daba ~1.0). Los 4 smokes
   pasan (bóveda/archivador: ppl ~7e11 = ce alta = sin fuga, datos aleatorios).
 
-**Estado tras el fix:** los modelos de memoria ya no pueden leer el futuro;
-en datos reales TinyStories-50k su ppl será alta al inicio y debería bajar con
-entrenamiento (aún no medido — requiere rerun en T4). La demo 512→4096 ya no
-hará OOM. **El investigador debe RE-EJECUTAR colabs C y D** (Reiniciar
-entorno → T4 → Ejecutar todo).
+**Estado tras el fix:** los modelos de memoria ya no pueden leer el futuro.
+La demo 512→4096 ya no hace OOM. **El investigador debe RE-EJECUTAR colabs
+C y D** (Reiniciar entorno → T4 → Ejecutar todo).
+
+### Resultados CORREGIDOS de la segunda corrida T4 (máscara tril(0))
+
+| Modelo | Params | val_ppl | val_ce final | Tiempo |
+|--------|--------|---------|-------------|--------|
+| CGMN | 5.93M | 544.2 | 6.30 | 519s |
+| Transformer | 5.90M | **50.6** | 3.92 | 207s |
+| vanilla@512 | 6.00M | 94.8 | 4.55 | 220s |
+| **Bóveda (16 tarjetas)** | 6.25M | **32.4** | 3.47 | 1078s |
+| **Archivador (8 cajones)** | 6.37M | **31.3** | 3.44 | 634s |
+
+**Hallazgos clave (con máscara honesta):**
+1. **Ambos memoria superan al Transformer** — ppl 31-32 vs 50.6 (38% mejor).
+2. **Archivador gana** en ppl (31.3 vs 32.4) y es **1.7× más rápido** (634s vs
+   1078s) con ~6% menos FLOPs constantes.
+3. **Anti-burbuja demostrada** en datos reales: FLOPs constantes de 278-294K
+   vs 8.4M del vanilla (30× menos a 4096). La ppl de la bóveda/archivador
+   **no crece** con el contexto (bóveda 56.9 a 4096 vs vanilla 80.1).
+4. Los modelos de memoria necesitan más tiempo de entrenamiento (~2× el
+   del Transformer) para converger, pero aprenden de verdad (train_ce
+   3.44-3.47, no colapsa a 0 como antes).
+5. vanilla@128 (ppl 50.6) sigue siendo competitivo — la ventana de 128 tokens
+   es suficiente para TinyStories. La memoria aporta sobre libros largos
+   (4096+) donde el vanilla pierde contexto.
